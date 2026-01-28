@@ -19,66 +19,48 @@
         }
 
         body {
-            margin: 0;
-            font-family: 'Segoe UI', Inter, sans-serif;
+            margin: 0; font-family: 'Segoe UI', Inter, sans-serif;
             background-color: var(--bg-color);
             background-image: radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
                               radial-gradient(at 100% 100%, rgba(15, 23, 42, 1) 0px, transparent 50%);
-            color: var(--text-main);
-            height: 100vh;
-            display: flex;
-            overflow: hidden;
+            color: var(--text-main); height: 100vh; display: flex; overflow: hidden;
         }
 
         /* LOGIN SCREEN */
         #login-screen {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--bg-color);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-color); display: flex; justify-content: center; align-items: center; z-index: 1000;
         }
         .login-box {
-            background: var(--sidebar-bg);
-            padding: 40px;
-            border-radius: 16px;
-            width: 350px;
-            text-align: center;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            border: 1px solid rgba(255,255,255,0.05);
+            background: var(--sidebar-bg); padding: 40px; border-radius: 16px; width: 350px;
+            text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.05);
         }
         .login-input {
-            width: 100%; padding: 12px; margin: 10px 0;
-            background: rgba(0,0,0,0.2); border: 1px solid #334155;
-            border-radius: 8px; color: white; box-sizing: border-box;
+            width: 100%; padding: 12px; margin: 10px 0; background: rgba(0,0,0,0.2);
+            border: 1px solid #334155; border-radius: 8px; color: white; box-sizing: border-box;
         }
         .login-btn {
-            width: 100%; padding: 12px; background: var(--accent);
-            border: none; color: white; border-radius: 8px;
-            cursor: pointer; font-weight: bold; margin-top: 10px; transition: 0.3s;
+            width: 100%; padding: 12px; background: var(--accent); border: none; color: white;
+            border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; transition: 0.3s;
         }
         .login-btn:hover { background: var(--accent-hover); }
 
         /* LAYOUT */
         .sidebar {
-            width: 260px; background: var(--sidebar-bg); padding: 20px;
-            display: flex; flex-direction: column; border-right: 1px solid rgba(255,255,255,0.05);
+            width: 260px; background: var(--sidebar-bg); padding: 20px; display: flex;
+            flex-direction: column; border-right: 1px solid rgba(255,255,255,0.05);
         }
         .brand {
-            font-size: 24px; font-weight: bold; color: var(--accent);
-            margin-bottom: 40px; display: flex; align-items: center; gap: 10px;
+            font-size: 24px; font-weight: bold; color: var(--accent); margin-bottom: 40px;
+            display: flex; align-items: center; gap: 10px;
         }
         .nav-btn {
-            background: transparent; border: none; color: var(--text-muted);
-            padding: 15px; text-align: left; cursor: pointer; border-radius: 10px;
-            font-size: 16px; transition: 0.2s; margin-bottom: 5px;
-            display: flex; align-items: center; gap: 12px;
+            background: transparent; border: none; color: var(--text-muted); padding: 15px;
+            text-align: left; cursor: pointer; border-radius: 10px; font-size: 16px; transition: 0.2s;
+            margin-bottom: 5px; display: flex; align-items: center; gap: 12px;
         }
         .nav-btn:hover, .nav-btn.active {
-            background: var(--accent); color: white;
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            background: var(--accent); color: white; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
         }
         
         .main-content { flex: 1; padding: 30px; overflow-y: auto; }
@@ -88,26 +70,21 @@
 
         h2 { margin-top: 0; font-size: 28px; border-bottom: 2px solid rgba(255,255,255,0.05); padding-bottom: 15px; }
 
-        .dashboard-grid {
-            display: grid; grid-template-columns: 300px 1fr; gap: 25px; height: calc(100vh - 100px);
-        }
+        .dashboard-grid { display: grid; grid-template-columns: 300px 1fr; gap: 25px; height: calc(100vh - 100px); }
         .card {
-            background: var(--card-bg); backdrop-filter: blur(10px);
-            border-radius: 12px; padding: 20px; border: 1px solid rgba(255,255,255,0.05);
-            display: flex; flex-direction: column;
+            background: var(--card-bg); backdrop-filter: blur(10px); border-radius: 12px;
+            padding: 20px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column;
         }
 
         /* PLAYERS */
         .search-bar {
-            background: rgba(0,0,0,0.3); border: 1px solid #334155;
-            padding: 10px; border-radius: 8px; color: white; width: 100%;
-            margin-bottom: 15px; box-sizing: border-box;
+            background: rgba(0,0,0,0.3); border: 1px solid #334155; padding: 10px;
+            border-radius: 8px; color: white; width: 100%; margin-bottom: 15px; box-sizing: border-box;
         }
         .player-list { list-style: none; padding: 0; margin: 0; overflow-y: auto; flex: 1; }
         .player-item {
-            padding: 12px; background: rgba(255,255,255,0.03); margin-bottom: 8px;
-            border-radius: 8px; cursor: pointer; transition: 0.2s;
-            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px; background: rgba(255,255,255,0.03); margin-bottom: 8px; border-radius: 8px;
+            cursor: pointer; transition: 0.2s; display: flex; justify-content: space-between; align-items: center;
         }
         .player-item:hover, .player-item.selected {
             background: rgba(59, 130, 246, 0.2); border-left: 3px solid var(--accent);
@@ -117,8 +94,10 @@
 
         /* ACTIONS */
         .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .btn { padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; color: white; }
+        .btn { padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; color: white; transition: 0.2s; }
         .btn:active { transform: scale(0.98); }
+        .btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; } /* Deaktivierter Look */
+        
         .btn-revive { background: var(--success); }
         .btn-kick { background: var(--warning); color: black; }
         .btn-ban { background: var(--danger); width: 100%; margin-top: 15px; }
@@ -197,11 +176,15 @@
                         <h3 id="selectedPlayerName" style="color: var(--accent); margin-top:0;">Kein Spieler ausgewählt</h3>
                         <input type="hidden" id="selectedPlayerId">
                         
+                        <div id="offlineWarning" style="color: #ef4444; margin-bottom: 10px; display: none;">
+                            <i class="fas fa-exclamation-triangle"></i> Spieler ist OFFLINE. Aktionen eingeschränkt.
+                        </div>
+                        
                         <div id="actionPanel" style="opacity: 0.5; pointer-events: none;">
                             
                             <div class="action-grid">
-                                <button class="btn btn-revive" onclick="sendAction('revive')"><i class="fas fa-heartbeat"></i> Revive</button>
-                                <button class="btn btn-kick" onclick="sendAction('kick')"><i class="fas fa-boot"></i> Kick</button>
+                                <button id="btnRevive" class="btn btn-revive" onclick="sendAction('revive')"><i class="fas fa-heartbeat"></i> Revive</button>
+                                <button id="btnKick" class="btn btn-kick" onclick="sendAction('kick')"><i class="fas fa-boot"></i> Kick</button>
                             </div>
 
                             <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 0;">
@@ -211,7 +194,7 @@
                                 <div class="input-row">
                                     <input type="text" id="itemName" class="input-mini" placeholder="Item (z.B. bread)">
                                     <input type="number" id="itemAmount" class="input-mini" placeholder="Menge" value="1" style="max-width: 60px;">
-                                    <button class="btn btn-blue" onclick="sendAction('giveitem')">Geben</button>
+                                    <button id="btnItem" class="btn btn-blue" onclick="sendAction('giveitem')">Geben</button>
                                 </div>
                             </div>
 
@@ -219,7 +202,7 @@
                                 <label><i class="fas fa-money-bill-wave"></i> Geld geben</label>
                                 <div class="input-row">
                                     <input type="number" id="moneyAmount" class="input-mini" placeholder="Betrag">
-                                    <button class="btn btn-blue" onclick="sendAction('givemoney')">Senden</button>
+                                    <button id="btnMoney" class="btn btn-blue" onclick="sendAction('givemoney')">Senden</button>
                                 </div>
                             </div>
 
@@ -228,11 +211,11 @@
                                 <div class="input-row">
                                     <input type="text" id="weaponName" class="input-mini" placeholder="ID (z.B. weapon_pistol)">
                                     <input type="number" id="weaponAmmo" class="input-mini" placeholder="Schuss" value="100" style="max-width: 60px;">
-                                    <button class="btn btn-blue" onclick="sendAction('giveweapon')">Geben</button>
+                                    <button id="btnWeapon" class="btn btn-blue" onclick="sendAction('giveweapon')">Geben</button>
                                 </div>
                             </div>
 
-                            <button class="btn btn-ban" onclick="sendAction('ban')"><i class="fas fa-ban"></i> BANNEN</button>
+                            <button id="btnBan" class="btn btn-ban" onclick="sendAction('ban')"><i class="fas fa-ban"></i> BANNEN</button>
                         </div>
                     </div>
                 </div>
@@ -252,8 +235,7 @@
                         <button class="btn btn-blue" style="width: 100px;" onclick="addTodo()">+ Add</button>
                     </div>
 
-                    <div id="todoList">
-                        </div>
+                    <div id="todoList"></div>
                 </div>
             </div>
 
@@ -265,9 +247,6 @@
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
-        // ==========================================
-        // CONFIG
-        // ==========================================
         const firebaseConfig = {
             apiKey: "AIzaSyDiqf5q8xmyuBO_wTNzW_gV3t-FdZ6kYzc",
             authDomain: "battleroyalegame-a15b2.firebaseapp.com",
@@ -286,13 +265,12 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // --- LOGIN SYSTEM ---
+        // --- AUTH ---
         window.login = () => {
             const e = document.getElementById('email').value;
             const p = document.getElementById('password').value;
             document.getElementById('login-msg').innerText = "Verbinde...";
             signInWithEmailAndPassword(auth, e, p).catch(err => {
-                console.error(err);
                 document.getElementById('login-msg').innerText = "Fehler: " + err.code;
             });
         };
@@ -307,14 +285,13 @@
                 dashboard.classList.remove('hidden');
                 fetchPlayers();
                 loadTodos();
-                setInterval(fetchPlayers, 5000); // 5s Auto-Refresh
+                setInterval(fetchPlayers, 5000);
             } else {
                 loginScreen.classList.remove('hidden');
                 dashboard.classList.add('hidden');
             }
         });
 
-        // --- NAVIGATION ---
         window.switchTab = (tabName) => {
             document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
             event.currentTarget.classList.add('active');
@@ -322,79 +299,70 @@
             document.getElementById('page-' + tabName).classList.add('active');
         }
 
-        // --- PLAYER LOGIC (Online + Offline) ---
-        let allPlayers = []; // Nur Online Spieler
+        // --- PLAYER LOGIC ---
+        let allPlayers = []; 
 
         window.fetchPlayers = async () => {
             try {
                 const res = await fetch(SERVER_BASE_URL + "/players");
-                if(!res.ok) throw new Error("Server Fehler");
-                allPlayers = await res.json();
-                
-                // Wenn nichts im Suchfeld steht, zeige nur Online Spieler
-                const searchVal = document.getElementById('playerSearch').value;
-                if(searchVal.length < 3) {
-                    renderPlayers(allPlayers);
+                if(res.ok) {
+                    allPlayers = await res.json();
+                    if(document.getElementById('playerSearch').value.length < 3) {
+                        renderPlayers(allPlayers);
+                    }
                 }
-            } catch(e) {
-                console.warn(e);
-            }
+            } catch(e) { console.warn(e); }
         };
 
         window.renderPlayers = (players) => {
             const list = document.getElementById('playerList');
             const currentSelectedId = document.getElementById('selectedPlayerId').value;
             list.innerHTML = "";
-            
             if(players.length === 0) {
                 list.innerHTML = '<li style="padding:20px; text-align:center; color:gray;">Keine Spieler gefunden</li>';
                 return;
             }
-
             players.forEach(p => {
                 const li = document.createElement('li');
                 li.className = 'player-item';
                 if(p.id == currentSelectedId) li.classList.add('selected');
                 
-                // Offline vs Online Anzeige
-                const statusClass = p.online ? "status-dot" : "status-dot offline";
-                const statusText = p.online ? "" : " (Offline)";
+                // Explizite Online/Offline Prüfung für CSS Klasse
+                const isOnline = (p.online === true);
+                const statusClass = isOnline ? "status-dot" : "status-dot offline";
+                const statusText = isOnline ? "" : " (Offline)";
                 
                 li.innerHTML = `<div><span class="${statusClass}"></span> [${p.id}] ${p.name} ${statusText}</div> <i class="fas fa-chevron-right" style="color:#64748b"></i>`;
-                li.onclick = () => selectPlayer(p.id, p.name, li);
+                // WICHTIG: Status an selectPlayer weitergeben
+                li.onclick = () => selectPlayer(p.id, p.name, li, isOnline);
                 list.appendChild(li);
             });
         };
 
-        // Erweiterte Suche
         let searchTimeout;
         document.getElementById('playerSearch').onkeyup = () => {
             clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(doSearch, 500); // 0.5s warten
+            searchTimeout = setTimeout(doSearch, 500);
         };
 
         async function doSearch() {
             const term = document.getElementById('playerSearch').value.toLowerCase();
-            
-            // 1. Online Filter
             const onlineFiltered = allPlayers.filter(p => p.name.toLowerCase().includes(term) || p.id.toString().includes(term));
             
-            // 2. Offline Suche (nur wenn > 2 Zeichen)
             let offlineFound = [];
             if(term.length > 2) {
                 try {
                     const res = await fetch(SERVER_BASE_URL + "/search_offline", {
-                        method: 'POST',
-                        body: JSON.stringify({ query: term })
+                        method: 'POST', body: JSON.stringify({ query: term })
                     });
                     if(res.ok) offlineFound = await res.json();
-                } catch(e) { console.log(e); }
+                } catch(e) {}
             }
-
             renderPlayers([...onlineFiltered, ...offlineFound]);
         }
 
-        window.selectPlayer = (id, name, element) => {
+        // NEU: isOnline Parameter entscheidet über Buttons
+        window.selectPlayer = (id, name, element, isOnline) => {
             document.querySelectorAll('.player-item').forEach(el => el.classList.remove('selected'));
             element.classList.add('selected');
 
@@ -402,21 +370,42 @@
             document.getElementById('selectedPlayerName').style.color = "white";
             document.getElementById('selectedPlayerId').value = id;
             
-            document.getElementById('actionPanel').style.opacity = "1";
-            document.getElementById('actionPanel').style.pointerEvents = "all";
+            const panel = document.getElementById('actionPanel');
+            panel.style.opacity = "1";
+            panel.style.pointerEvents = "all";
+
+            // LOGIK: Wenn Offline, Buttons sperren!
+            const btnRevive = document.getElementById('btnRevive');
+            const btnKick = document.getElementById('btnKick');
+            const btnItem = document.getElementById('btnItem');
+            const btnMoney = document.getElementById('btnMoney');
+            const btnWeapon = document.getElementById('btnWeapon');
+            const warning = document.getElementById('offlineWarning');
+
+            if (!isOnline) {
+                // SPERREN
+                btnRevive.disabled = true;
+                btnKick.disabled = true;
+                btnItem.disabled = true;
+                btnMoney.disabled = true;
+                btnWeapon.disabled = true;
+                warning.style.display = "block";
+            } else {
+                // ENTSPERREN
+                btnRevive.disabled = false;
+                btnKick.disabled = false;
+                btnItem.disabled = false;
+                btnMoney.disabled = false;
+                btnWeapon.disabled = false;
+                warning.style.display = "none";
+            }
         };
 
-        // --- AKTIONEN ---
         window.sendAction = async (actionType) => {
             const id = document.getElementById('selectedPlayerId').value;
             if(!id) return;
 
-            const payload = {
-                secret: API_SECRET,
-                action: actionType,
-                targetId: id
-            };
-
+            const payload = { secret: API_SECRET, action: actionType, targetId: id };
             if(actionType === 'giveitem') {
                 payload.item = document.getElementById('itemName').value;
                 payload.amount = document.getElementById('itemAmount').value;
@@ -430,18 +419,14 @@
 
             try {
                 const res = await fetch(SERVER_BASE_URL + "/command", {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
+                    method: 'POST', headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify(payload)
                 });
                 const data = await res.json();
                 alert(data.message || "Aktion ausgeführt!");
-            } catch(e) {
-                alert("Fehler: " + e.message);
-            }
+            } catch(e) { alert("Fehler: " + e.message); }
         };
 
-        // --- TODO LOGIC ---
         window.addTodo = async () => {
             const txt = document.getElementById('todoInput').value;
             const prio = document.getElementById('todoPriority').value;
