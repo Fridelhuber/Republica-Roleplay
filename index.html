@@ -2,293 +2,300 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Server Admin</title>
+    <title>NexGen Admin</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-body: #0f172a;       /* Sehr dunkles Blau */
-            --bg-panel: #1e293b;      /* Panel Hintergrund */
-            --bg-element: #334155;    /* Eingabefelder/Listen */
-            --primary: #3b82f6;       /* Helles Blau */
-            --primary-hover: #2563eb;
-            --danger: #ef4444;        /* Rot */
-            --success: #10b981;       /* Grün */
-            --text-main: #f1f5f9;
-            --text-muted: #94a3b8;
+            /* Neon Palette */
+            --bg-deep: #050a14;
+            --glass: rgba(16, 26, 45, 0.8);
+            --glass-border: rgba(0, 242, 255, 0.2);
+            --neon-blue: #00f2ff;
+            --neon-glow: 0 0 15px rgba(0, 242, 255, 0.4);
+            --text-main: #ffffff;
+            --text-muted: #8ca0b8;
+            --danger: #ff2a6d;
+            --success: #05ffa1;
         }
 
-        * { box-sizing: border-box; }
-        
         body {
-            margin: 0;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-body);
-            color: var(--text-main);
-            height: 100vh;
-            display: flex;
-            overflow: hidden;
+            margin: 0; font-family: 'Rajdhani', sans-serif;
+            background-color: var(--bg-deep);
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(0, 81, 255, 0.1) 0%, transparent 60%),
+                linear-gradient(rgba(5, 10, 20, 0.95), rgba(5, 10, 20, 0.95)),
+                url('https://www.transparenttextures.com/patterns/cubes.png');
+            color: var(--text-main); height: 100vh; display: flex; overflow: hidden;
         }
 
-        /* --- LOGIN SCREEN --- */
+        /* --- ANIMATIONEN --- */
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(0, 242, 255, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(0, 242, 255, 0); } 100% { box-shadow: 0 0 0 0 rgba(0, 242, 255, 0); } }
+        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- LOGIN --- */
         #login-screen {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--bg-body); z-index: 999;
+            position: absolute; inset: 0; z-index: 999;
+            background: rgba(5, 10, 20, 0.98);
             display: flex; justify-content: center; align-items: center;
         }
         .login-card {
-            background: var(--bg-panel); padding: 40px; border-radius: 12px;
-            width: 350px; text-align: center;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            border: 1px solid var(--bg-element);
+            background: var(--glass); border: 1px solid var(--glass-border);
+            padding: 40px; width: 380px; text-align: center; border-radius: 20px;
+            box-shadow: 0 0 40px rgba(0, 242, 255, 0.1);
         }
-        .login-input {
-            width: 100%; padding: 12px; margin: 10px 0; background: var(--bg-body);
-            border: 1px solid var(--bg-element); border-radius: 6px; color: white;
+        .inp-neo {
+            width: 100%; padding: 12px; margin: 8px 0; background: rgba(0,0,0,0.4);
+            border: 1px solid #334155; color: var(--neon-blue); border-radius: 6px;
+            font-family: 'Orbitron', sans-serif; outline: none; transition: 0.3s; box-sizing: border-box;
         }
-        .btn-login {
-            width: 100%; padding: 12px; background: var(--primary); color: white;
-            border: none; border-radius: 6px; font-weight: bold; cursor: pointer;
-            margin-top: 10px; transition: 0.2s;
+        .inp-neo:focus { border-color: var(--neon-blue); box-shadow: 0 0 10px rgba(0, 242, 255, 0.2); }
+        .btn-neo {
+            width: 100%; padding: 12px; margin-top: 15px; background: transparent;
+            border: 1px solid var(--neon-blue); color: var(--neon-blue); font-weight: bold;
+            cursor: pointer; font-family: 'Orbitron', sans-serif; transition: 0.3s; text-transform: uppercase;
         }
-        .btn-login:hover { background: var(--primary-hover); }
+        .btn-neo:hover { background: var(--neon-blue); color: black; box-shadow: 0 0 20px var(--neon-blue); }
 
-        /* --- HAUPT LAYOUT --- */
-        #dashboard {
-            display: flex; width: 100%; height: 100%;
-        }
+        /* --- LAYOUT --- */
+        #dashboard { display: flex; width: 100%; height: 100%; opacity: 0; transition: 0.5s; }
+        #dashboard.visible { opacity: 1; }
 
-        /* 1. SIDEBAR (Links außen) */
         .sidebar {
-            width: 80px;
-            background: var(--bg-panel);
-            display: flex; flex-direction: column; align-items: center;
-            padding-top: 20px; border-right: 1px solid var(--bg-element);
+            width: 90px; background: rgba(10, 15, 25, 0.9); border-right: 1px solid var(--glass-border);
+            display: flex; flex-direction: column; align-items: center; padding-top: 30px;
         }
         .nav-icon {
-            font-size: 24px; color: var(--text-muted);
-            margin-bottom: 30px; cursor: pointer;
-            padding: 15px; border-radius: 12px; transition: 0.2s;
+            font-size: 24px; color: var(--text-muted); margin-bottom: 20px;
+            padding: 15px; border-radius: 12px; cursor: pointer; transition: 0.3s;
         }
         .nav-icon:hover, .nav-icon.active {
-            background: var(--primary); color: white;
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-        }
-        .nav-icon.logout { margin-top: auto; color: var(--danger); }
-        .nav-icon.logout:hover { background: rgba(239, 68, 68, 0.2); }
-
-        /* 2. INHALTSBEREICH */
-        .content-area {
-            flex: 1; display: flex; padding: 20px; gap: 20px;
+            color: var(--neon-blue); background: rgba(0, 242, 255, 0.1);
+            text-shadow: 0 0 10px var(--neon-blue);
         }
 
-        /* LINKER BEREICH: SPIELER LISTE */
-        .list-panel {
-            width: 350px;
-            background: var(--bg-panel);
-            border-radius: 16px;
-            padding: 20px;
-            display: flex; flex-direction: column;
-            border: 1px solid var(--bg-element);
+        .content { flex: 1; display: flex; padding: 30px; gap: 30px; }
+
+        /* --- LISTE (Mitte) --- */
+        .panel-list {
+            width: 350px; background: var(--glass); border: 1px solid var(--glass-border);
+            border-radius: 20px; padding: 20px; display: flex; flex-direction: column;
+            backdrop-filter: blur(10px);
         }
-        .search-box {
-            background: var(--bg-body); border: 1px solid var(--bg-element);
-            padding: 12px; border-radius: 8px; color: white; width: 100%;
-            margin-bottom: 20px; outline: none;
+        .search-container { margin-bottom: 20px; position: relative; }
+        .search-input {
+            width: 100%; padding: 12px 12px 12px 40px; background: rgba(0,0,0,0.3);
+            border: 1px solid var(--glass-border); border-radius: 10px; color: white;
+            font-family: 'Rajdhani', sans-serif; font-size: 16px; outline: none; box-sizing: border-box;
         }
-        .search-box:focus { border-color: var(--primary); }
+        .search-icon { position: absolute; left: 12px; top: 12px; color: var(--neon-blue); }
         
-        .player-list-ul {
-            list-style: none; padding: 0; margin: 0; overflow-y: auto; flex: 1;
-        }
+        .player-ul { list-style: none; padding: 0; margin: 0; overflow-y: auto; flex: 1; }
         .player-li {
-            padding: 15px; background: var(--bg-element); margin-bottom: 8px;
-            border-radius: 8px; cursor: pointer; display: flex;
-            justify-content: space-between; align-items: center;
-            border-left: 4px solid transparent; transition: 0.2s;
+            padding: 15px; margin-bottom: 10px; background: rgba(255,255,255,0.03);
+            border-radius: 10px; cursor: pointer; display: flex; justify-content: space-between;
+            align-items: center; border-left: 3px solid transparent; transition: 0.3s;
         }
-        .player-li:hover { background: #475569; }
+        .player-li:hover { background: rgba(0, 242, 255, 0.1); }
         .player-li.selected {
-            background: #283040; border-left-color: var(--primary);
-        }
-        .id-badge {
-            background: #0f172a; padding: 2px 6px; border-radius: 4px;
-            font-size: 12px; color: #94a3b8; font-family: monospace;
+            background: linear-gradient(90deg, rgba(0, 242, 255, 0.15), transparent);
+            border-left-color: var(--neon-blue);
         }
 
-        /* RECHTER BEREICH: AKTIONEN */
-        .detail-panel {
-            flex: 1;
-            background: var(--bg-panel);
-            border-radius: 16px;
-            padding: 30px;
-            border: 1px solid var(--bg-element);
-            display: flex; flex-direction: column;
-            justify-content: center; align-items: center;
+        /* --- DETAIL PANEL (Rechts) --- */
+        .panel-detail {
+            flex: 1; background: var(--glass); border: 1px solid var(--glass-border);
+            border-radius: 20px; padding: 30px; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; backdrop-filter: blur(10px);
+            position: relative; overflow: hidden;
         }
 
-        /* Wenn ein Spieler ausgewählt ist */
-        .player-controls {
-            width: 100%; max-width: 600px;
-            display: flex; flex-direction: column; gap: 20px;
+        /* Das große Spieler Icon */
+        .profile-icon-container {
+            width: 120px; height: 120px; border-radius: 50%;
+            border: 2px solid var(--neon-blue);
+            display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 0 30px rgba(0, 242, 255, 0.2);
+            margin-bottom: 20px; animation: float 6s ease-in-out infinite;
+            background: rgba(0,0,0,0.5);
         }
+        .profile-icon { font-size: 60px; color: var(--text-main); text-shadow: 0 0 10px var(--neon-blue); }
 
-        /* Header Info */
-        .player-header {
-            display: flex; justify-content: space-between; align-items: flex-end;
-            border-bottom: 1px solid var(--bg-element); padding-bottom: 20px; margin-bottom: 10px;
-        }
-        .player-name-big { font-size: 32px; font-weight: bold; margin: 0; color: white; }
-        .player-id-big { font-size: 18px; color: var(--text-muted); }
+        .p-name-large { font-family: 'Orbitron'; font-size: 36px; margin: 0; color: var(--neon-blue); text-shadow: var(--neon-glow); }
+        .p-id-large { color: var(--text-muted); font-family: monospace; margin-bottom: 30px; font-size: 16px; }
 
-        /* Bars */
-        .bars-container {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
-        }
-        .bar-wrap { background: var(--bg-body); height: 12px; border-radius: 6px; overflow: hidden; margin-top: 5px; }
-        .bar-fill { height: 100%; transition: width 0.5s ease; }
-        .hp-fill { background: var(--success); }
-        .armor-fill { background: var(--primary); }
-        .bar-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+        .stats-row { display: flex; gap: 30px; width: 100%; max-width: 600px; margin-bottom: 30px; }
+        .stat-bar { flex: 1; }
+        .bar-bg { height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; margin-top: 5px; }
+        .bar-fill { height: 100%; transition: width 0.5s; }
+        .hp { background: var(--success); box-shadow: 0 0 10px var(--success); }
+        .armor { background: #0066ff; box-shadow: 0 0 10px #0066ff; }
 
-        /* Inputs & Buttons */
-        .control-group {
-            background: var(--bg-element); padding: 20px; border-radius: 12px;
+        .controls-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; max-width: 600px;
         }
-        .control-title { margin: 0 0 15px 0; font-size: 14px; color: var(--text-muted); text-transform: uppercase; }
+        .action-box {
+            background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .act-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 1px; }
+        .flex-row { display: flex; gap: 8px; }
         
-        .input-row { display: flex; gap: 10px; }
-        .input-std {
-            flex: 1; background: var(--bg-body); border: 1px solid #475569;
-            padding: 10px; border-radius: 6px; color: white; outline: none;
+        .mini-input {
+            flex: 1; background: rgba(0,0,0,0.5); border: 1px solid #334155;
+            color: white; padding: 8px; border-radius: 4px; outline: none; font-family: 'Rajdhani';
         }
-        .select-std {
-            background: var(--bg-body); border: 1px solid #475569;
-            padding: 10px; border-radius: 6px; color: white; outline: none;
+        .mini-btn {
+            background: var(--neon-blue); border: none; font-weight: bold;
+            padding: 0 15px; border-radius: 4px; cursor: pointer; font-family: 'Orbitron'; font-size: 12px;
         }
-        .btn-action {
-            padding: 10px 20px; background: var(--primary); border: none;
-            border-radius: 6px; color: white; font-weight: bold; cursor: pointer;
+        
+        .big-btn {
+            width: 100%; padding: 15px; border: none; border-radius: 8px;
+            font-family: 'Orbitron'; font-weight: bold; cursor: pointer;
+            text-transform: uppercase; letter-spacing: 1px; transition: 0.2s;
         }
-        .btn-action:hover { background: var(--primary-hover); }
+        .btn-revive { background: rgba(5, 255, 161, 0.1); border: 1px solid var(--success); color: var(--success); }
+        .btn-revive:hover { background: var(--success); color: black; box-shadow: 0 0 20px var(--success); }
+        
+        .btn-kick { background: rgba(255, 165, 0, 0.1); border: 1px solid orange; color: orange; }
+        .btn-kick:hover { background: orange; color: black; box-shadow: 0 0 20px orange; }
 
-        .btn-red { background: rgba(239, 68, 68, 0.2); color: var(--danger); width: 100%; margin-top: 10px; }
-        .btn-red:hover { background: var(--danger); color: white; }
+        .btn-ban { background: rgba(255, 42, 109, 0.1); border: 1px solid var(--danger); color: var(--danger); margin-top: 20px; }
+        .btn-ban:hover { background: var(--danger); color: white; box-shadow: 0 0 20px var(--danger); }
 
-        .btn-green { background: rgba(16, 185, 129, 0.2); color: var(--success); width: 100%; margin-top: 10px; }
-        .btn-green:hover { background: var(--success); color: white; }
-
-        /* Utilities */
         .hidden { display: none !important; }
-        .empty-state { color: var(--text-muted); font-size: 20px; }
+        .empty-icon { font-size: 80px; color: rgba(255,255,255,0.1); margin-bottom: 20px; }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--neon-blue); border-radius: 3px; }
     </style>
 </head>
 <body>
 
     <div id="login-screen">
         <div class="login-card">
-            <h2 style="color:var(--primary); margin-top:0;">Admin Access</h2>
-            <input type="email" id="email" class="login-input" placeholder="Email" value="flo.saftig526@gmail.com">
-            <input type="password" id="password" class="login-input" placeholder="Passwort">
-            <button class="btn-login" onclick="login()">Verbinden</button>
-            <p id="login-msg" style="color:var(--danger); margin-top:10px; font-size:14px;"></p>
+            <img src="3D_Static.jpg" style="width:100px; border-radius:50%; border:2px solid var(--neon-blue); margin-bottom:20px; animation: pulse 2s infinite;">
+            <h2 style="font-family:'Orbitron'; color:white; margin-top:0;">ADMIN ACCESS</h2>
+            <input type="email" id="email" class="inp-neo" placeholder="IDENTIFIER" value="flo.saftig526@gmail.com">
+            <input type="password" id="password" class="inp-neo" placeholder="PASSWORD">
+            <button class="btn-neo" onclick="login()">CONNECT</button>
+            <p id="login-msg" style="color:var(--danger); margin-top:15px; font-size:14px;"></p>
         </div>
     </div>
 
     <div id="dashboard" class="hidden">
         
-        <nav class="sidebar">
-            <div class="nav-icon active" onclick="showPage('players')"><i class="fas fa-users"></i></div>
-            <div class="nav-icon" onclick="showPage('todos')"><i class="fas fa-clipboard-list"></i></div>
-            <div class="nav-icon logout" onclick="logout()"><i class="fas fa-power-off"></i></div>
-        </nav>
+        <div class="sidebar">
+            <img src="3D_Static.jpg" style="width:50px; border-radius:50%; border:2px solid var(--neon-blue); margin-bottom:30px;">
+            <div class="nav-icon active" onclick="switchTab('players')"><i class="fas fa-users"></i></div>
+            <div class="nav-icon" onclick="switchTab('todos')"><i class="fas fa-tasks"></i></div>
+            <div style="flex:1"></div>
+            <div class="nav-icon" style="color:var(--danger)" onclick="logout()"><i class="fas fa-power-off"></i></div>
+        </div>
 
-        <div id="page-players" class="content-area">
+        <div id="page-players" class="content">
             
-            <div class="list-panel">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                    <h3 style="margin:0;">Online Spieler</h3>
-                    <i class="fas fa-sync-alt" style="cursor:pointer; color:var(--primary);" onclick="fetchPlayers()"></i>
+            <div class="panel-list">
+                <h3 style="font-family:'Orbitron'; margin:0 0 15px 0; color:var(--text-muted)">ONLINE UNITS</h3>
+                
+                <div class="search-container">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" id="search" class="search-input" placeholder="Spieler suchen..." onkeyup="renderList()">
                 </div>
-                <input type="text" id="search" class="search-box" placeholder="Spieler suchen..." onkeyup="renderList()">
-                <ul id="playerList" class="player-list-ul">
-                    </ul>
+
+                <div id="playerList" class="player-ul">
+                    </div>
             </div>
 
-            <div class="detail-panel">
+            <div class="panel-detail">
                 
-                <div id="emptyState" class="empty-state">
-                    <i class="fas fa-arrow-left"></i> Wähle einen Spieler aus der Liste
+                <div id="emptyState" style="text-align:center;">
+                    <i class="fas fa-fingerprint empty-icon"></i>
+                    <h2 style="font-family:'Orbitron'; color:var(--text-muted)">WAITING FOR TARGET</h2>
                 </div>
 
-                <div id="playerControls" class="player-controls hidden">
+                <div id="playerDetailContent" class="hidden" style="width:100%; display:flex; flex-direction:column; align-items:center; animation:fadeIn 0.5s;">
                     
-                    <div class="player-header">
-                        <div>
-                            <h1 id="pName" class="player-name-big">SpielerName</h1>
-                            <div class="bars-container" style="width: 300px; margin-top:10px;">
-                                <div>
-                                    <div class="bar-label">LEBEN</div>
-                                    <div class="bar-wrap"><div id="hpBar" class="bar-fill hp-fill" style="width: 50%;"></div></div>
-                                </div>
-                                <div>
-                                    <div class="bar-label">WESTE</div>
-                                    <div class="bar-wrap"><div id="armorBar" class="bar-fill armor-fill" style="width: 0%;"></div></div>
-                                </div>
+                    <div class="profile-icon-container">
+                        <i class="fas fa-user profile-icon"></i>
+                    </div>
+
+                    <h1 id="pName" class="p-name-large">PLAYER</h1>
+                    <div id="pID" class="p-id-large">ID: 0</div>
+
+                    <div class="stats-row">
+                        <div class="stat-bar">
+                            <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:5px;">
+                                <span style="color:var(--success)">HEALTH</span> <i class="fas fa-heart" style="color:var(--success)"></i>
+                            </div>
+                            <div class="bar-bg"><div id="hpBar" class="bar-fill hp" style="width:50%"></div></div>
+                        </div>
+                        <div class="stat-bar">
+                            <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:5px;">
+                                <span style="color:#0066ff">ARMOR</span> <i class="fas fa-shield-alt" style="color:#0066ff"></i>
+                            </div>
+                            <div class="bar-bg"><div id="armorBar" class="bar-fill armor" style="width:20%"></div></div>
+                        </div>
+                    </div>
+
+                    <div class="controls-grid">
+                        <button class="big-btn btn-revive" onclick="sendAction('revive')">REVIVE</button>
+                        <button class="big-btn btn-kick" onclick="sendAction('kick')">KICK</button>
+                    </div>
+
+                    <div class="controls-grid" style="margin-top:20px;">
+                        
+                        <div class="action-box">
+                            <div class="act-label">Give Item</div>
+                            <div class="flex-row">
+                                <input id="itemName" class="mini-input" placeholder="ID">
+                                <input id="itemAmount" type="number" class="mini-input" style="max-width:50px" value="1">
+                                <button class="mini-btn" onclick="sendAction('giveitem')"><i class="fas fa-check"></i></button>
                             </div>
                         </div>
-                        <div id="pID" class="player-id-big">ID: 0</div>
-                    </div>
 
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                        <button class="btn-action btn-green" onclick="sendAction('revive')"><i class="fas fa-heartbeat"></i> REVIVE</button>
-                        <button class="btn-action btn-red" onclick="sendAction('kick')"><i class="fas fa-user-times"></i> KICKEN</button>
-                    </div>
-
-                    <div class="control-group">
-                        <div class="control-title">Finanzen</div>
-                        <div class="input-row">
-                            <select id="moneyType" class="select-std" style="width:100px;">
-                                <option value="cash">Bar</option>
-                                <option value="bank">Bank</option>
-                            </select>
-                            <input type="number" id="moneyAmount" class="input-std" placeholder="Betrag">
-                            <button class="btn-action" onclick="sendAction('givemoney')">Senden</button>
+                        <div class="action-box">
+                            <div class="act-label">Give Money</div>
+                            <div class="flex-row">
+                                <select id="moneyType" class="mini-input" style="max-width:70px;">
+                                    <option value="cash">$$$</option>
+                                    <option value="bank">Bank</option>
+                                </select>
+                                <input id="moneyAmount" type="number" class="mini-input" placeholder="0">
+                                <button class="mini-btn" onclick="sendAction('givemoney')"><i class="fas fa-check"></i></button>
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="control-group">
-                        <div class="control-title">Inventory</div>
-                        <div class="input-row">
-                            <input type="text" id="itemName" class="input-std" placeholder="Item Name (z.B. bread)">
-                            <input type="number" id="itemAmount" class="input-std" value="1" style="max-width:80px;">
-                            <button class="btn-action" onclick="sendAction('giveitem')">Geben</button>
+                        <div class="action-box" style="grid-column: span 2;">
+                            <div class="act-label">Give Weapon</div>
+                            <div class="flex-row">
+                                <input id="weaponName" class="mini-input" placeholder="Weapon ID (weapon_pistol)">
+                                <input id="weaponAmmo" type="number" class="mini-input" style="max-width:80px" value="200" placeholder="Ammo">
+                                <button class="mini-btn" onclick="sendAction('giveweapon')">AUTHORIZE</button>
+                            </div>
                         </div>
+
                     </div>
 
-                    <div class="control-group">
-                        <div class="control-title">Waffen</div>
-                        <div class="input-row">
-                            <input type="text" id="weaponName" class="input-std" placeholder="Waffen ID">
-                            <input type="number" id="weaponAmmo" class="input-std" value="250" style="max-width:80px;">
-                            <button class="btn-action" onclick="sendAction('giveweapon')">Geben</button>
-                        </div>
-                    </div>
-
-                    <button class="btn-action btn-red" style="background:var(--danger); color:white;" onclick="sendAction('ban')">SERVER BANN</button>
+                    <button class="big-btn btn-ban" onclick="sendAction('ban')">PERMANENT BAN</button>
 
                 </div>
             </div>
         </div>
 
-        <div id="page-todos" class="content-area hidden">
-             <div class="list-panel" style="width:100%; max-width:800px; margin:0 auto;">
-                <h2>To-Do Liste</h2>
-                <div class="input-row" style="margin-bottom:20px;">
-                    <input type="text" id="todoInput" class="input-std" placeholder="Neue Aufgabe...">
-                    <button class="btn-action" onclick="addTodo()">Hinzufügen</button>
+        <div id="page-todos" class="content hidden">
+            <div class="panel-detail" style="max-width:800px; margin:0 auto;">
+                <h2 style="font-family:'Orbitron'; color:var(--neon-blue)">PROTOCOL LOG</h2>
+                <div class="flex-row" style="width:100%; margin-bottom:20px;">
+                    <input id="todoInput" class="inp-neo" style="margin:0" placeholder="New Entry...">
+                    <button class="btn-neo" style="width:auto; margin:0; padding:0 30px;" onclick="addTodo()">ADD</button>
                 </div>
-                <ul id="todoList" class="player-list-ul"></ul>
-             </div>
+                <div id="todoList" style="width:100%; display:flex; flex-direction:column; gap:10px;"></div>
+            </div>
         </div>
 
     </div>
@@ -298,7 +305,6 @@
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
-        // --- CONFIG ---
         const firebaseConfig = {
             apiKey: "AIzaSyDiqf5q8xmyuBO_wTNzW_gV3t-FdZ6kYzc",
             authDomain: "battleroyalegame-a15b2.firebaseapp.com",
@@ -307,7 +313,6 @@
         const SERVER_URL = "http://127.0.0.1:30120/admin_pannel_flo"; 
         const API_SECRET = "mein_geheimes_passwort_123";
 
-        // --- INIT ---
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
@@ -315,52 +320,48 @@
         let allPlayers = [];
         let selectedId = null;
 
-        // --- LOGIN ---
+        // AUTH
         window.login = () => {
             const e = document.getElementById('email').value;
             const p = document.getElementById('password').value;
             signInWithEmailAndPassword(auth, e, p).catch(err => {
-                document.getElementById('login-msg').innerText = "Fehler: " + err.code;
+                document.getElementById('login-msg').innerText = "ACCESS DENIED: " + err.code;
             });
         };
         window.logout = () => signOut(auth);
 
         onAuthStateChanged(auth, user => {
             if(user) {
-                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('login-screen').style.display = 'none';
                 document.getElementById('dashboard').classList.remove('hidden');
+                setTimeout(() => document.getElementById('dashboard').classList.add('visible'), 50);
                 fetchPlayers();
                 loadTodos();
-                setInterval(fetchPlayers, 2000); // 2 Sek Update Rate für HP
+                setInterval(fetchPlayers, 2000);
             } else {
-                document.getElementById('login-screen').classList.remove('hidden');
+                document.getElementById('login-screen').style.display = 'flex';
+                document.getElementById('dashboard').classList.remove('visible');
                 document.getElementById('dashboard').classList.add('hidden');
             }
         });
 
-        // --- NAVIGATION ---
-        window.showPage = (pageId) => {
-            document.getElementById('page-players').classList.add('hidden');
-            document.getElementById('page-todos').classList.add('hidden');
-            document.getElementById('page-' + pageId).classList.remove('hidden');
-            
-            // Icon aktiv setzen
+        window.switchTab = (tab) => {
+            document.querySelectorAll('.content').forEach(el => el.classList.add('hidden'));
+            document.getElementById('page-'+tab).classList.remove('hidden');
             document.querySelectorAll('.nav-icon').forEach(el => el.classList.remove('active'));
             event.currentTarget.classList.add('active');
         };
 
-        // --- PLAYER SYSTEM ---
+        // PLAYERS
         window.fetchPlayers = async () => {
             try {
                 const res = await fetch(SERVER_URL + "/players");
                 if(res.ok) {
                     allPlayers = await res.json();
                     renderList();
-                    // Live Update der Details falls ausgewählt
                     if(selectedId) {
                         const p = allPlayers.find(x => x.id == selectedId);
-                        if(p) updateDetails(p);
-                        else deselect(); // Spieler gegangen
+                        if(p) updateDetails(p); else deselect();
                     }
                 }
             } catch(e) {}
@@ -372,29 +373,27 @@
             list.innerHTML = "";
 
             const filtered = allPlayers.filter(p => p.name.toLowerCase().includes(term));
-
+            
             filtered.forEach(p => {
-                const li = document.createElement('li');
-                li.className = `player-li ${selectedId == p.id ? 'selected' : ''}`;
-                li.innerHTML = `
-                    <span style="font-weight:600">${p.name}</span>
-                    <span class="id-badge">ID: ${p.id}</span>
+                const div = document.createElement('div');
+                div.className = `player-li ${selectedId == p.id ? 'selected' : ''}`;
+                div.innerHTML = `
+                    <span style="font-weight:bold">${p.name}</span>
+                    <span style="font-family:monospace; opacity:0.6">ID: ${p.id}</span>
                 `;
-                li.onclick = () => selectPlayer(p);
-                list.appendChild(li);
+                div.onclick = () => selectPlayer(p);
+                list.appendChild(div);
             });
         };
 
         window.selectPlayer = (p) => {
             selectedId = p.id;
-            renderList(); // Update CSS Highlight
-            
+            renderList();
             document.getElementById('emptyState').classList.add('hidden');
-            document.getElementById('playerControls').classList.remove('hidden');
+            document.getElementById('playerDetailContent').classList.remove('hidden');
             
             document.getElementById('pName').innerText = p.name;
             document.getElementById('pID').innerText = "SERVER ID: " + p.id;
-            
             updateDetails(p);
         };
 
@@ -406,16 +405,14 @@
         function deselect() {
             selectedId = null;
             document.getElementById('emptyState').classList.remove('hidden');
-            document.getElementById('playerControls').classList.add('hidden');
+            document.getElementById('playerDetailContent').classList.add('hidden');
         }
 
-        // --- ACTIONS ---
+        // ACTIONS
         window.sendAction = async (action) => {
             if(!selectedId) return;
-
             const payload = { secret: API_SECRET, action: action, targetId: selectedId };
             
-            // Felder auslesen
             if(action === 'giveitem') {
                 payload.item = document.getElementById('itemName').value;
                 payload.amount = document.getElementById('itemAmount').value;
@@ -435,13 +432,11 @@
                     body: JSON.stringify(payload)
                 });
                 const data = await res.json();
-                alert(data.message); // Einfaches Feedback
-            } catch(e) {
-                alert("Fehler: " + e);
-            }
+                alert(data.message);
+            } catch(e) { alert(e); }
         };
 
-        // --- TODOS ---
+        // TODOS
         window.addTodo = async () => {
             const txt = document.getElementById('todoInput').value;
             if(txt) {
@@ -449,6 +444,7 @@
                 document.getElementById('todoInput').value = '';
             }
         };
+
         window.loadTodos = () => {
             const q = query(collection(db, "todos"), orderBy("created", "desc"));
             onSnapshot(q, snaps => {
@@ -456,16 +452,14 @@
                 list.innerHTML = "";
                 snaps.forEach(docSnap => {
                     const d = docSnap.data();
-                    const li = document.createElement('li');
-                    li.className = "player-li";
-                    li.innerHTML = `<span>${d.task}</span> <i class="fas fa-trash" style="color:var(--danger); cursor:pointer;" onclick="delTodo('${docSnap.id}')"></i>`;
-                    list.appendChild(li);
+                    const div = document.createElement('div');
+                    div.style = "background:rgba(255,255,255,0.05); padding:15px; border-radius:10px; display:flex; justify-content:space-between; align-items:center;";
+                    div.innerHTML = `<span>${d.task}</span> <i class="fas fa-trash" style="color:var(--danger); cursor:pointer;" onclick="delTodo('${docSnap.id}')"></i>`;
+                    list.appendChild(div);
                 });
             });
         };
         window.delTodo = async (id) => deleteDoc(doc(db, "todos", id));
-        // Globals for onclick
-        window.delTodo = delTodo;
     </script>
 </body>
 </html>
