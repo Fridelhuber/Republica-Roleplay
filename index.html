@@ -1,9 +1,272 @@
-<script type="module">
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>NexGen Admin Panel</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --sidebar-bg: #1e293b;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --accent: #3b82f6; 
+            --accent-hover: #2563eb;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --danger: #ef4444;
+            --success: #10b981;
+            --warning: #f59e0b;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Inter, sans-serif;
+            background-color: var(--bg-color);
+            background-image: radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
+                              radial-gradient(at 100% 100%, rgba(15, 23, 42, 1) 0px, transparent 50%);
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* LOGIN SCREEN */
+        #login-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .login-box {
+            background: var(--sidebar-bg);
+            padding: 40px;
+            border-radius: 16px;
+            width: 350px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .login-input {
+            width: 100%; padding: 12px; margin: 10px 0;
+            background: rgba(0,0,0,0.2); border: 1px solid #334155;
+            border-radius: 8px; color: white; box-sizing: border-box;
+        }
+        .login-btn {
+            width: 100%; padding: 12px; background: var(--accent);
+            border: none; color: white; border-radius: 8px;
+            cursor: pointer; font-weight: bold; margin-top: 10px; transition: 0.3s;
+        }
+        .login-btn:hover { background: var(--accent-hover); }
+
+        /* LAYOUT */
+        .sidebar {
+            width: 260px; background: var(--sidebar-bg); padding: 20px;
+            display: flex; flex-direction: column; border-right: 1px solid rgba(255,255,255,0.05);
+        }
+        .brand {
+            font-size: 24px; font-weight: bold; color: var(--accent);
+            margin-bottom: 40px; display: flex; align-items: center; gap: 10px;
+        }
+        .nav-btn {
+            background: transparent; border: none; color: var(--text-muted);
+            padding: 15px; text-align: left; cursor: pointer; border-radius: 10px;
+            font-size: 16px; transition: 0.2s; margin-bottom: 5px;
+            display: flex; align-items: center; gap: 12px;
+        }
+        .nav-btn:hover, .nav-btn.active {
+            background: var(--accent); color: white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        
+        .main-content { flex: 1; padding: 30px; overflow-y: auto; }
+        .page { display: none; animation: fadeIn 0.3s ease; }
+        .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        h2 { margin-top: 0; font-size: 28px; border-bottom: 2px solid rgba(255,255,255,0.05); padding-bottom: 15px; }
+
+        .dashboard-grid {
+            display: grid; grid-template-columns: 300px 1fr; gap: 25px; height: calc(100vh - 100px);
+        }
+        .card {
+            background: var(--card-bg); backdrop-filter: blur(10px);
+            border-radius: 12px; padding: 20px; border: 1px solid rgba(255,255,255,0.05);
+            display: flex; flex-direction: column;
+        }
+
+        /* PLAYERS */
+        .search-bar {
+            background: rgba(0,0,0,0.3); border: 1px solid #334155;
+            padding: 10px; border-radius: 8px; color: white; width: 100%;
+            margin-bottom: 15px; box-sizing: border-box;
+        }
+        .player-list { list-style: none; padding: 0; margin: 0; overflow-y: auto; flex: 1; }
+        .player-item {
+            padding: 12px; background: rgba(255,255,255,0.03); margin-bottom: 8px;
+            border-radius: 8px; cursor: pointer; transition: 0.2s;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .player-item:hover, .player-item.selected {
+            background: rgba(59, 130, 246, 0.2); border-left: 3px solid var(--accent);
+        }
+        .status-dot { height: 8px; width: 8px; background: var(--success); border-radius: 50%; display: inline-block; margin-right: 8px; }
+
+        /* ACTIONS */
+        .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .btn { padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; color: white; }
+        .btn:active { transform: scale(0.98); }
+        .btn-revive { background: var(--success); }
+        .btn-kick { background: var(--warning); color: black; }
+        .btn-ban { background: var(--danger); width: 100%; margin-top: 15px; }
+        .btn-blue { background: var(--accent); }
+
+        .input-group { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+        .input-group label { display: block; margin-bottom: 5px; font-size: 0.9em; color: var(--text-muted); }
+        .input-row { display: flex; gap: 10px; }
+        .input-mini { background: #0f172a; border: 1px solid #334155; color: white; padding: 8px; border-radius: 6px; flex: 1; }
+
+        /* TODO */
+        .todo-container { max-width: 800px; margin: 0 auto; }
+        .todo-header { display: flex; gap: 10px; margin-bottom: 20px; }
+        .priority-select { background: #1e293b; color: white; border: 1px solid #334155; border-radius: 8px; padding: 0 10px; }
+        .todo-item {
+            background: var(--card-bg); padding: 15px; margin-bottom: 10px; border-radius: 8px;
+            display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--accent);
+        }
+        .todo-item.high { border-left-color: var(--danger); }
+        .todo-item.medium { border-left-color: var(--warning); }
+        .todo-item.low { border-left-color: var(--success); }
+        
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <div id="login-screen">
+        <div class="login-box">
+            <h2 style="border:none; color: var(--accent);"><i class="fas fa-lock"></i> Admin Login</h2>
+            <input type="email" id="email" class="login-input" placeholder="Email" value="flo.saftig526@gmail.com">
+            <input type="password" id="password" class="login-input" placeholder="Passwort">
+            <button class="login-btn" onclick="login()">Einloggen</button>
+            <p id="login-msg" style="color: var(--danger); font-size: 0.9em; margin-top: 10px;"></p>
+        </div>
+    </div>
+
+    <div id="dashboard" class="hidden" style="width: 100%; display: flex;">
+        
+        <div class="sidebar">
+            <div class="brand">
+                <i class="fas fa-shield-alt"></i> ADMIN PANEL
+            </div>
+            <button class="nav-btn active" onclick="switchTab('players')">
+                <i class="fas fa-users"></i> Spieler
+            </button>
+            <button class="nav-btn" onclick="switchTab('todos')">
+                <i class="fas fa-tasks"></i> To-Do Liste
+            </button>
+            
+            <div style="margin-top: auto;">
+                <button class="nav-btn" onclick="logout()" style="color: var(--danger);">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </div>
+
+        <div class="main-content">
+            
+            <div id="page-players" class="page active">
+                <h2><i class="fas fa-gamepad"></i> Server Management</h2>
+                
+                <div class="dashboard-grid">
+                    <div class="card">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                            <h3 style="margin:0;">Online</h3>
+                            <button onclick="fetchPlayers()" style="background:none; border:none; color:var(--accent); cursor:pointer;"><i class="fas fa-sync"></i></button>
+                        </div>
+                        <input type="text" id="playerSearch" class="search-bar" placeholder="Spieler suchen..." onkeyup="filterPlayers()">
+                        <ul id="playerList" class="player-list">
+                            <li style="padding:20px; text-align:center; color:gray;">Warte auf Login...</li>
+                        </ul>
+                    </div>
+
+                    <div class="card">
+                        <h3 id="selectedPlayerName" style="color: var(--accent); margin-top:0;">Kein Spieler ausgewählt</h3>
+                        <input type="hidden" id="selectedPlayerId">
+                        
+                        <div id="actionPanel" style="opacity: 0.5; pointer-events: none;">
+                            
+                            <div class="action-grid">
+                                <button class="btn btn-revive" onclick="sendAction('revive')"><i class="fas fa-heartbeat"></i> Revive</button>
+                                <button class="btn btn-kick" onclick="sendAction('kick')"><i class="fas fa-boot"></i> Kick</button>
+                            </div>
+
+                            <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 0;">
+
+                            <div class="input-group">
+                                <label><i class="fas fa-box"></i> Item geben</label>
+                                <div class="input-row">
+                                    <input type="text" id="itemName" class="input-mini" placeholder="Item (z.B. bread)">
+                                    <input type="number" id="itemAmount" class="input-mini" placeholder="Menge" value="1" style="max-width: 60px;">
+                                    <button class="btn btn-blue" onclick="sendAction('giveitem')">Geben</button>
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <label><i class="fas fa-money-bill-wave"></i> Geld geben</label>
+                                <div class="input-row">
+                                    <input type="number" id="moneyAmount" class="input-mini" placeholder="Betrag">
+                                    <button class="btn btn-blue" onclick="sendAction('givemoney')">Senden</button>
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <label><i class="fas fa-gun"></i> Waffe geben</label>
+                                <div class="input-row">
+                                    <input type="text" id="weaponName" class="input-mini" placeholder="ID (z.B. weapon_pistol)">
+                                    <input type="number" id="weaponAmmo" class="input-mini" placeholder="Schuss" value="100" style="max-width: 60px;">
+                                    <button class="btn btn-blue" onclick="sendAction('giveweapon')">Geben</button>
+                                </div>
+                            </div>
+
+                            <button class="btn btn-ban" onclick="sendAction('ban')"><i class="fas fa-ban"></i> BANNEN</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="page-todos" class="page">
+                <h2><i class="fas fa-clipboard-list"></i> To-Do Liste</h2>
+                
+                <div class="todo-container">
+                    <div class="todo-header">
+                        <select id="todoPriority" class="priority-select">
+                            <option value="low">Niedrig</option>
+                            <option value="medium" selected>Mittel</option>
+                            <option value="high">Hoch 🚨</option>
+                        </select>
+                        <input type="text" id="todoInput" class="search-bar" placeholder="Neue Aufgabe erstellen..." style="margin:0;">
+                        <button class="btn btn-blue" style="width: 100px;" onclick="addTodo()">+ Add</button>
+                    </div>
+
+                    <div id="todoList">
+                        </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
-        // --- DEINE CONFIG ---
+        // ==========================================
+        // 1. FIREBASE CONFIG
+        // ==========================================
         const firebaseConfig = {
             apiKey: "AIzaSyDiqf5q8xmyuBO_wTNzW_gV3t-FdZ6kYzc",
             authDomain: "battleroyalegame-a15b2.firebaseapp.com",
@@ -15,41 +278,53 @@
             measurementId: "G-JBJKLZ0K5X"
         };
 
-        // HIER WAR DER FEHLER: Der Name muss admin_pannel_flo sein!
-        // Da du lokal testest, nutzen wir 127.0.0.1
+        // ==========================================
+        // 2. SERVER URL (ANGLEICHEN AN DEINEN ORDNER!)
+        // ==========================================
+        // Dein Ordner heißt "admin_pannel_flo", also muss das hier stehen:
         const SERVER_BASE_URL = "http://127.0.0.1:30120/admin_pannel_flo"; 
-        const API_SECRET = "mein_geheimes_passwort_123"; // Muss mit server.lua übereinstimmen!
+        const API_SECRET = "mein_geheimes_passwort_123";
 
+        // Apps Initialisieren
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // --- AUTH ---
+        // --- LOGIN SYSTEM ---
         window.login = () => {
             const e = document.getElementById('email').value;
             const p = document.getElementById('password').value;
+            
+            document.getElementById('login-msg').innerText = "Verbinde...";
+            
             signInWithEmailAndPassword(auth, e, p).catch(err => {
-                // Zeigt genau an, was falsch ist
                 console.error(err);
-                document.getElementById('login-msg').innerText = "Fehler: " + err.code; 
+                let msg = "Fehler beim Login.";
+                if(err.code === 'auth/invalid-login-credentials') msg = "Falsches Passwort oder Email!";
+                if(err.code === 'auth/user-not-found') msg = "Benutzer nicht gefunden.";
+                if(err.code === 'auth/too-many-requests') msg = "Zu viele Versuche. Warte kurz.";
+                document.getElementById('login-msg').innerText = msg;
             });
         };
 
         window.logout = () => signOut(auth);
 
+        // Prüft ob User eingeloggt ist
         onAuthStateChanged(auth, user => {
             const loginScreen = document.getElementById('login-screen');
             const dashboard = document.getElementById('dashboard');
             
             if(user) {
+                // User ist drin
                 loginScreen.classList.add('hidden');
                 dashboard.style.display = 'flex';
                 dashboard.classList.remove('hidden');
-                fetchPlayers(); // Sofort Spieler laden
+                fetchPlayers();
                 loadTodos();
-                // Startet automatischen Refresh alle 5 Sekunden
-                setInterval(fetchPlayers, 5000); 
+                // Automatisch alle 5 Sekunden aktualisieren
+                setInterval(fetchPlayers, 5000);
             } else {
+                // User ist raus
                 loginScreen.classList.remove('hidden');
                 dashboard.classList.add('hidden');
             }
@@ -63,36 +338,48 @@
             document.getElementById('page-' + tabName).classList.add('active');
         }
 
-        // --- PLAYER LOGIC ---
+        // --- SPIELER LADEN ---
         let allPlayers = [];
 
         window.fetchPlayers = async () => {
             try {
-                // Wir rufen jetzt den richtigen Ordner auf
-                console.log("Versuche Spieler zu laden von:", SERVER_BASE_URL + "/players");
-                
+                // Ruft /players auf dem Server auf
                 const res = await fetch(SERVER_BASE_URL + "/players");
                 
-                if(!res.ok) throw new Error("HTTP Fehler: " + res.status);
+                if(!res.ok) throw new Error("Server antwortet nicht (404)");
                 
                 allPlayers = await res.json();
                 renderPlayers(allPlayers);
             } catch(e) {
-                console.error("Fetch Fehler:", e);
-                document.getElementById('playerList').innerHTML = `<li style="padding:20px; text-align:center; color:#ef4444;">Fehler: ${e.message}<br><small>Prüfe F12 Konsole</small></li>`;
+                console.warn("Fetch Fehler:", e);
+                const list = document.getElementById('playerList');
+                // Nur Fehler anzeigen, wenn Liste leer ist (damit es nicht flackert)
+                if(list.children.length <= 1) {
+                    list.innerHTML = `<li style="padding:20px; text-align:center; color:#ef4444;">
+                        <b>Keine Verbindung zum Server!</b><br>
+                        <small>Läuft der Server? Heißt der Ordner wirklich 'admin_pannel_flo'?</small>
+                    </li>`;
+                }
             }
         };
 
         window.renderPlayers = (players) => {
             const list = document.getElementById('playerList');
+            // Merke die aktuelle Auswahl, damit sie beim Refresh nicht verschwindet
+            const currentSelectedId = document.getElementById('selectedPlayerId').value;
+            
             list.innerHTML = "";
+            
             if(players.length === 0) {
-                 list.innerHTML = '<li style="padding:20px; text-align:center; color:gray;">Keine Spieler online</li>';
-                 return;
+                list.innerHTML = '<li style="padding:20px; text-align:center; color:gray;">Keine Spieler online</li>';
+                return;
             }
+
             players.forEach(p => {
                 const li = document.createElement('li');
                 li.className = 'player-item';
+                if(p.id == currentSelectedId) li.classList.add('selected'); // Auswahl wiederherstellen
+                
                 li.innerHTML = `<div><span class="status-dot"></span> [${p.id}] ${p.name}</div> <i class="fas fa-chevron-right" style="color:#64748b"></i>`;
                 li.onclick = () => selectPlayer(p.id, p.name, li);
                 list.appendChild(li);
@@ -108,13 +395,16 @@
         window.selectPlayer = (id, name, element) => {
             document.querySelectorAll('.player-item').forEach(el => el.classList.remove('selected'));
             element.classList.add('selected');
+
             document.getElementById('selectedPlayerName').innerText = `Verwalte: ${name} (ID: ${id})`;
             document.getElementById('selectedPlayerName').style.color = "white";
             document.getElementById('selectedPlayerId').value = id;
+            
             document.getElementById('actionPanel').style.opacity = "1";
             document.getElementById('actionPanel').style.pointerEvents = "all";
         };
 
+        // --- AKTIONEN SENDEN ---
         window.sendAction = async (actionType) => {
             const id = document.getElementById('selectedPlayerId').value;
             if(!id) return;
@@ -125,6 +415,7 @@
                 targetId: id
             };
 
+            // Daten sammeln je nach Aktion
             if(actionType === 'giveitem') {
                 payload.item = document.getElementById('itemName').value;
                 payload.amount = document.getElementById('itemAmount').value;
@@ -137,6 +428,7 @@
             }
 
             try {
+                // Ruft /command auf dem Server auf
                 const res = await fetch(SERVER_BASE_URL + "/command", {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
@@ -154,7 +446,11 @@
             const txt = document.getElementById('todoInput').value;
             const prio = document.getElementById('todoPriority').value;
             if(txt) {
-                await addDoc(collection(db, "todos"), { task: txt, priority: prio, created: Date.now() });
+                await addDoc(collection(db, "todos"), { 
+                    task: txt, 
+                    priority: prio,
+                    created: Date.now() 
+                });
                 document.getElementById('todoInput').value = '';
             }
         };
@@ -168,10 +464,15 @@
                     const data = docSnap.data();
                     const div = document.createElement('div');
                     div.className = `todo-item ${data.priority || 'medium'}`;
-                    div.innerHTML = `<span>${data.task}</span> <button onclick="delTodo('${docSnap.id}')" style="background:none; border:none; color:#94a3b8; cursor:pointer;"><i class="fas fa-trash"></i></button>`;
+                    div.innerHTML = `
+                        <span>${data.task}</span>
+                        <button onclick="delTodo('${docSnap.id}')" style="background:none; border:none; color:#94a3b8; cursor:pointer;"><i class="fas fa-trash"></i></button>
+                    `;
                     list.appendChild(div);
                 });
             });
         };
         window.delTodo = async (id) => deleteDoc(doc(db, "todos", id));
     </script>
+</body>
+</html>
