@@ -113,6 +113,7 @@
             background: rgba(59, 130, 246, 0.2); border-left: 3px solid var(--accent);
         }
         .status-dot { height: 8px; width: 8px; background: var(--success); border-radius: 50%; display: inline-block; margin-right: 8px; }
+        .status-dot.offline { background: #64748b; }
 
         /* ACTIONS */
         .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
@@ -183,10 +184,10 @@
                 <div class="dashboard-grid">
                     <div class="card">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                            <h3 style="margin:0;">Online</h3>
+                            <h3 style="margin:0;">Online & Suche</h3>
                             <button onclick="fetchPlayers()" style="background:none; border:none; color:var(--accent); cursor:pointer;"><i class="fas fa-sync"></i></button>
                         </div>
-                        <input type="text" id="playerSearch" class="search-bar" placeholder="Spieler suchen..." onkeyup="filterPlayers()">
+                        <input type="text" id="playerSearch" class="search-bar" placeholder="Name suchen... (Enter für Offline Suche)">
                         <ul id="playerList" class="player-list">
                             <li style="padding:20px; text-align:center; color:gray;">Warte auf Login...</li>
                         </ul>
@@ -265,7 +266,7 @@
         import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
         // ==========================================
-        // 1. FIREBASE CONFIG
+        // CONFIG
         // ==========================================
         const firebaseConfig = {
             apiKey: "AIzaSyDiqf5q8xmyuBO_wTNzW_gV3t-FdZ6kYzc",
@@ -278,14 +279,9 @@
             measurementId: "G-JBJKLZ0K5X"
         };
 
-        // ==========================================
-        // 2. SERVER URL (ANGLEICHEN AN DEINEN ORDNER!)
-        // ==========================================
-        // Dein Ordner heißt "admin_pannel_flo", also muss das hier stehen:
         const SERVER_BASE_URL = "http://127.0.0.1:30120/admin_pannel_flo"; 
         const API_SECRET = "mein_geheimes_passwort_123";
 
-        // Apps Initialisieren
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
@@ -294,37 +290,25 @@
         window.login = () => {
             const e = document.getElementById('email').value;
             const p = document.getElementById('password').value;
-            
             document.getElementById('login-msg').innerText = "Verbinde...";
-            
             signInWithEmailAndPassword(auth, e, p).catch(err => {
                 console.error(err);
-                let msg = "Fehler beim Login.";
-                if(err.code === 'auth/invalid-login-credentials') msg = "Falsches Passwort oder Email!";
-                if(err.code === 'auth/user-not-found') msg = "Benutzer nicht gefunden.";
-                if(err.code === 'auth/too-many-requests') msg = "Zu viele Versuche. Warte kurz.";
-                document.getElementById('login-msg').innerText = msg;
+                document.getElementById('login-msg').innerText = "Fehler: " + err.code;
             });
         };
-
         window.logout = () => signOut(auth);
 
-        // Prüft ob User eingeloggt ist
         onAuthStateChanged(auth, user => {
             const loginScreen = document.getElementById('login-screen');
             const dashboard = document.getElementById('dashboard');
-            
             if(user) {
-                // User ist drin
                 loginScreen.classList.add('hidden');
                 dashboard.style.display = 'flex';
                 dashboard.classList.remove('hidden');
                 fetchPlayers();
                 loadTodos();
-                // Automatisch alle 5 Sekunden aktualisieren
-                setInterval(fetchPlayers, 5000);
+                setInterval(fetchPlayers, 5000); // 5s Auto-Refresh
             } else {
-                // User ist raus
                 loginScreen.classList.remove('hidden');
                 dashboard.classList.add('hidden');
             }
@@ -338,59 +322,77 @@
             document.getElementById('page-' + tabName).classList.add('active');
         }
 
-        // --- SPIELER LADEN ---
-        let allPlayers = [];
+        // --- PLAYER LOGIC (Online + Offline) ---
+        let allPlayers = []; // Nur Online Spieler
 
         window.fetchPlayers = async () => {
             try {
-                // Ruft /players auf dem Server auf
                 const res = await fetch(SERVER_BASE_URL + "/players");
-                
-                if(!res.ok) throw new Error("Server antwortet nicht (404)");
-                
+                if(!res.ok) throw new Error("Server Fehler");
                 allPlayers = await res.json();
-                renderPlayers(allPlayers);
-            } catch(e) {
-                console.warn("Fetch Fehler:", e);
-                const list = document.getElementById('playerList');
-                // Nur Fehler anzeigen, wenn Liste leer ist (damit es nicht flackert)
-                if(list.children.length <= 1) {
-                    list.innerHTML = `<li style="padding:20px; text-align:center; color:#ef4444;">
-                        <b>Keine Verbindung zum Server!</b><br>
-                        <small>Läuft der Server? Heißt der Ordner wirklich 'admin_pannel_flo'?</small>
-                    </li>`;
+                
+                // Wenn nichts im Suchfeld steht, zeige nur Online Spieler
+                const searchVal = document.getElementById('playerSearch').value;
+                if(searchVal.length < 3) {
+                    renderPlayers(allPlayers);
                 }
+            } catch(e) {
+                console.warn(e);
             }
         };
 
         window.renderPlayers = (players) => {
             const list = document.getElementById('playerList');
-            // Merke die aktuelle Auswahl, damit sie beim Refresh nicht verschwindet
             const currentSelectedId = document.getElementById('selectedPlayerId').value;
-            
             list.innerHTML = "";
             
             if(players.length === 0) {
-                list.innerHTML = '<li style="padding:20px; text-align:center; color:gray;">Keine Spieler online</li>';
+                list.innerHTML = '<li style="padding:20px; text-align:center; color:gray;">Keine Spieler gefunden</li>';
                 return;
             }
 
             players.forEach(p => {
                 const li = document.createElement('li');
                 li.className = 'player-item';
-                if(p.id == currentSelectedId) li.classList.add('selected'); // Auswahl wiederherstellen
+                if(p.id == currentSelectedId) li.classList.add('selected');
                 
-                li.innerHTML = `<div><span class="status-dot"></span> [${p.id}] ${p.name}</div> <i class="fas fa-chevron-right" style="color:#64748b"></i>`;
+                // Offline vs Online Anzeige
+                const statusClass = p.online ? "status-dot" : "status-dot offline";
+                const statusText = p.online ? "" : " (Offline)";
+                
+                li.innerHTML = `<div><span class="${statusClass}"></span> [${p.id}] ${p.name} ${statusText}</div> <i class="fas fa-chevron-right" style="color:#64748b"></i>`;
                 li.onclick = () => selectPlayer(p.id, p.name, li);
                 list.appendChild(li);
             });
         };
 
-        window.filterPlayers = () => {
-            const term = document.getElementById('playerSearch').value.toLowerCase();
-            const filtered = allPlayers.filter(p => p.name.toLowerCase().includes(term) || p.id.toString().includes(term));
-            renderPlayers(filtered);
+        // Erweiterte Suche
+        let searchTimeout;
+        document.getElementById('playerSearch').onkeyup = () => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(doSearch, 500); // 0.5s warten
         };
+
+        async function doSearch() {
+            const term = document.getElementById('playerSearch').value.toLowerCase();
+            
+            // 1. Online Filter
+            const onlineFiltered = allPlayers.filter(p => p.name.toLowerCase().includes(term) || p.id.toString().includes(term));
+            
+            // 2. Offline Suche (nur wenn > 2 Zeichen)
+            let offlineFound = [];
+            if(term.length > 2) {
+                try {
+                    const res = await fetch(SERVER_BASE_URL + "/search_offline", {
+                        method: 'POST',
+                        body: JSON.stringify({ query: term })
+                    });
+                    if(res.ok) offlineFound = await res.json();
+                } catch(e) { console.log(e); }
+            }
+
+            renderPlayers([...onlineFiltered, ...offlineFound]);
+        }
 
         window.selectPlayer = (id, name, element) => {
             document.querySelectorAll('.player-item').forEach(el => el.classList.remove('selected'));
@@ -404,7 +406,7 @@
             document.getElementById('actionPanel').style.pointerEvents = "all";
         };
 
-        // --- AKTIONEN SENDEN ---
+        // --- AKTIONEN ---
         window.sendAction = async (actionType) => {
             const id = document.getElementById('selectedPlayerId').value;
             if(!id) return;
@@ -415,7 +417,6 @@
                 targetId: id
             };
 
-            // Daten sammeln je nach Aktion
             if(actionType === 'giveitem') {
                 payload.item = document.getElementById('itemName').value;
                 payload.amount = document.getElementById('itemAmount').value;
@@ -428,7 +429,6 @@
             }
 
             try {
-                // Ruft /command auf dem Server auf
                 const res = await fetch(SERVER_BASE_URL + "/command", {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
@@ -437,7 +437,7 @@
                 const data = await res.json();
                 alert(data.message || "Aktion ausgeführt!");
             } catch(e) {
-                alert("Fehler beim Senden: " + e.message);
+                alert("Fehler: " + e.message);
             }
         };
 
@@ -446,11 +446,7 @@
             const txt = document.getElementById('todoInput').value;
             const prio = document.getElementById('todoPriority').value;
             if(txt) {
-                await addDoc(collection(db, "todos"), { 
-                    task: txt, 
-                    priority: prio,
-                    created: Date.now() 
-                });
+                await addDoc(collection(db, "todos"), { task: txt, priority: prio, created: Date.now() });
                 document.getElementById('todoInput').value = '';
             }
         };
@@ -464,10 +460,7 @@
                     const data = docSnap.data();
                     const div = document.createElement('div');
                     div.className = `todo-item ${data.priority || 'medium'}`;
-                    div.innerHTML = `
-                        <span>${data.task}</span>
-                        <button onclick="delTodo('${docSnap.id}')" style="background:none; border:none; color:#94a3b8; cursor:pointer;"><i class="fas fa-trash"></i></button>
-                    `;
+                    div.innerHTML = `<span>${data.task}</span> <button onclick="delTodo('${docSnap.id}')" style="background:none; border:none; color:#94a3b8; cursor:pointer;"><i class="fas fa-trash"></i></button>`;
                     list.appendChild(div);
                 });
             });
