@@ -1,454 +1,559 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FiveM Admin Panel</title>
+    <title>NexGen Admin Panel</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         :root {
-            --primary-blue: #29b6f6;
-            --secondary-blue: #0288d1;
-            --danger-red: #e57373;
-            --success-green: #81c784;
-            --warning-yellow: #ffd54f;
-            --dark-bg: #121212;
-            --panel-bg: rgba(30, 30, 46, 0.8);
-            --text-light: #ffffff;
-            --text-muted: #b0bec5;
+            --bg-color: #0f172a;
+            --sidebar-bg: #1e293b;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --accent: #3b82f6; /* Dein Blau */
+            --accent-hover: #2563eb;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --danger: #ef4444;
+            --success: #10b981;
+            --warning: #f59e0b;
         }
 
         body {
             margin: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #0d1117, #161b22);
-            color: var(--text-light);
+            font-family: 'Segoe UI', Inter, sans-serif;
+            background-color: var(--bg-color);
+            background-image: radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
+                              radial-gradient(at 100% 100%, rgba(15, 23, 42, 1) 0px, transparent 50%);
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* --- LOGIN SCREEN --- */
+        #login-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .login-box {
+            background: var(--sidebar-bg);
+            padding: 40px;
+            border-radius: 16px;
+            width: 350px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .login-input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            background: rgba(0,0,0,0.2);
+            border: 1px solid #334155;
+            border-radius: 8px;
+            color: white;
+            box-sizing: border-box;
+        }
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--accent);
+            border: none;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+            transition: 0.3s;
+        }
+        .login-btn:hover { background: var(--accent-hover); }
+
+        /* --- SIDEBAR --- */
+        .sidebar {
+            width: 260px;
+            background: var(--sidebar-bg);
+            padding: 20px;
             display: flex;
             flex-direction: column;
+            border-right: 1px solid rgba(255,255,255,0.05);
+        }
+        .brand {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--accent);
+            margin-bottom: 40px;
+            display: flex;
             align-items: center;
-            min-height: 100vh;
-            /* Simulated particle background */
-            background-image: 
-                radial-gradient(circle at 20% 30%, rgba(41, 182, 246, 0.2) 0%, transparent 10%),
-                radial-gradient(circle at 80% 70%, rgba(2, 136, 209, 0.15) 0%, transparent 10%);
-            background-size: cover;
+            gap: 10px;
+        }
+        .nav-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 15px;
+            text-align: left;
+            cursor: pointer;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: 0.2s;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .nav-btn:hover, .nav-btn.active {
+            background: var(--accent);
+            color: white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        .logout-area { margin-top: auto; }
+
+        /* --- MAIN CONTENT --- */
+        .main-content {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+            position: relative;
         }
 
-        .logo-container {
-            margin-top: 20px;
-            margin-bottom: 30px;
-        }
+        .page { display: none; animation: fadeIn 0.3s ease; }
+        .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        .logo {
-            width: 150px;
-            height: auto;
-            filter: drop-shadow(0 0 10px var(--primary-blue));
-        }
+        h2 { margin-top: 0; font-size: 28px; border-bottom: 2px solid rgba(255,255,255,0.05); padding-bottom: 15px; }
 
-        .main-container {
+        /* --- GRID LAYOUT --- */
+        .dashboard-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            width: 90%;
-            max-width: 1200px;
+            grid-template-columns: 300px 1fr;
+            gap: 25px;
+            height: calc(100vh - 100px);
         }
 
-        .panel {
-            background: var(--panel-bg);
+        /* --- CARDS --- */
+        .card {
+            background: var(--card-bg);
             backdrop-filter: blur(10px);
             border-radius: 12px;
             padding: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-        }
-
-        h3 {
-            margin-top: 0;
-            margin-bottom: 15px;
-            color: var(--primary-blue);
-            font-weight: 600;
-        }
-
-        /* Online Players Section */
-        .players-panel {
+            border: 1px solid rgba(255,255,255,0.05);
             display: flex;
             flex-direction: column;
-            height: 100%;
         }
 
+        /* --- PLAYER LIST --- */
         .search-bar {
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            border-radius: 6px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid #334155;
             padding: 10px;
-            color: var(--text-light);
-            margin-bottom: 15px;
+            border-radius: 8px;
+            color: white;
             width: 100%;
+            margin-bottom: 15px;
             box-sizing: border-box;
         }
-
         .player-list {
             list-style: none;
             padding: 0;
             margin: 0;
             overflow-y: auto;
-            flex-grow: 1;
-            max-height: 400px; /* Adjust based on content */
+            flex: 1;
         }
-
         .player-item {
-            padding: 10px;
-            margin-bottom: 5px;
-            border-radius: 6px;
+            padding: 12px;
+            background: rgba(255,255,255,0.03);
+            margin-bottom: 8px;
+            border-radius: 8px;
             cursor: pointer;
-            transition: background 0.2s;
-            color: var(--text-muted);
-        }
-
-        .player-item:hover, .player-item.active {
-            background: rgba(41, 182, 246, 0.2);
-            color: var(--text-light);
-        }
-
-        /* Player Actions Section */
-        .actions-panel {
+            transition: 0.2s;
             display: flex;
-            flex-direction: column;
-            gap: 10px;
+            justify-content: space-between;
+            align-items: center;
         }
+        .player-item:hover, .player-item.selected {
+            background: rgba(59, 130, 246, 0.2);
+            border-left: 3px solid var(--accent);
+        }
+        .status-dot { height: 8px; width: 8px; background: var(--success); border-radius: 50%; display: inline-block; margin-right: 8px; }
 
-        .action-btn {
+        /* --- ACTION BUTTONS --- */
+        .action-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .btn {
             padding: 12px;
             border: none;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.2s, transform 0.1s;
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        .action-btn:active {
-            transform: scale(0.98);
-        }
-
-        .btn-revive {
-            background: rgba(41, 182, 246, 0.2);
-            color: var(--primary-blue);
-            border: 1px solid var(--primary-blue);
-        }
-
-        .btn-revive:hover { background: rgba(41, 182, 246, 0.4); }
-
-        .btn-kick {
-            background: rgba(229, 115, 115, 0.2);
-            color: var(--danger-red);
-            border: 1px solid var(--danger-red);
-        }
-
-        .btn-kick:hover { background: rgba(229, 115, 115, 0.4); }
-
-        .btn-ban {
-            background: var(--danger-red);
-            color: white;
-        }
-        
-        .btn-ban:hover { background: #d32f2f; }
-
-        /* Action Inputs */
-        .action-group {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 15px;
             border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            font-weight: 600;
+            color: white;
+            transition: transform 0.1s;
         }
-
-        .action-group h4 {
-            margin-top: 0;
-            margin-bottom: 10px;
-            color: var(--text-light);
-            font-size: 0.9em;
-        }
+        .btn:active { transform: scale(0.98); }
+        .btn-revive { background: var(--success); }
+        .btn-kick { background: var(--warning); color: black; }
+        .btn-ban { background: var(--danger); width: 100%; margin-top: 15px; }
+        .btn-blue { background: var(--accent); }
 
         .input-group {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-
-        .action-input {
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            border-radius: 6px;
-            padding: 10px;
-            color: var(--text-light);
-            flex-grow: 1;
-            box-sizing: border-box;
-        }
-
-        .action-input.small { flex-grow: 0; width: 80px; }
-
-        .btn-action {
-            background: var(--secondary-blue);
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background 0.2s;
-        }
-        .btn-action:hover { background: #01579b; }
-
-
-        /* Server Stats Section */
-        .stats-panel {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(0,0,0,0.2);
             padding: 15px;
             border-radius: 8px;
-        }
-
-        /* To-Do List Section */
-        .todo-panel {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-        }
-
-        .priority-filters {
-            display: flex;
-            gap: 10px;
             margin-bottom: 15px;
         }
+        .input-group label { display: block; margin-bottom: 5px; font-size: 0.9em; color: var(--text-muted); }
+        .input-row { display: flex; gap: 10px; }
+        .input-mini { background: #0f172a; border: 1px solid #334155; color: white; padding: 8px; border-radius: 6px; flex: 1; }
 
-        .filter-btn {
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            border-radius: 6px;
-            padding: 8px 12px;
-            color: var(--text-muted);
-            cursor: pointer;
-            font-size: 0.9em;
-            transition: background 0.2s;
-        }
-        .filter-btn:hover, .filter-btn.active {
-            background: rgba(41, 182, 246, 0.2);
-            color: var(--text-light);
-        }
-
-        .todo-input-container {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .todo-input {
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            border-radius: 6px;
-            padding: 10px;
-            color: var(--text-light);
-            flex-grow: 1;
-            box-sizing: border-box;
-        }
-
-        .btn-add-todo {
-            background: var(--success-green);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            padding: 10px 15px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        .btn-add-todo:hover { background: #66bb6a; }
-
-        .todo-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            overflow-y: auto;
-            flex-grow: 1;
-        }
-
+        /* --- TODO STYLE --- */
+        .todo-container { max-width: 800px; margin: 0 auto; }
+        .todo-header { display: flex; gap: 10px; margin-bottom: 20px; }
+        .priority-select { background: #1e293b; color: white; border: 1px solid #334155; border-radius: 8px; padding: 0 10px; }
         .todo-item {
+            background: var(--card-bg);
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px;
-            margin-bottom: 10px;
-            border-radius: 6px;
-            border: 1px solid transparent;
+            border-left: 4px solid var(--accent);
         }
-
-        .todo-item.low { background: rgba(129, 199, 132, 0.2); border-color: var(--success-green); }
-        .todo-item.medium { background: rgba(255, 213, 79, 0.2); border-color: var(--warning-yellow); }
-        .todo-item.high { background: rgba(229, 115, 115, 0.2); border-color: var(--danger-red); }
-
-        .todo-text { flex-grow: 1; margin-left: 10px; }
-
-        .btn-delete-todo {
-            background: transparent;
-            border: none;
-            color: var(--text-muted);
-            cursor: pointer;
-            font-size: 1.2em;
-        }
-        .btn-delete-todo:hover { color: var(--danger-red); }
-
-        /* Logout Button */
-        .logout-btn-container {
-            width: 90%;
-            max-width: 1200px;
-            margin-top: 20px;
-            margin-bottom: 30px;
-        }
-        .btn-logout {
-            width: 100%;
-            padding: 15px;
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--text-muted);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .btn-logout:hover {
-            background: rgba(229, 115, 115, 0.2);
-            color: var(--danger-red);
-            border-color: var(--danger-red);
-        }
-
-        /* Scrollbar Styling */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: rgba(41, 182, 246, 0.3);
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(41, 182, 246, 0.5);
-        }
-
+        .todo-item.high { border-left-color: var(--danger); }
+        .todo-item.medium { border-left-color: var(--warning); }
+        .todo-item.low { border-left-color: var(--success); }
+        
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-    <div class="logo-container">
-        <img src="image_5.png" alt="Admin Panel Logo" class="logo">
+    <div id="login-screen">
+        <div class="login-box">
+            <h2 style="border:none; color: var(--accent);">Admin Login</h2>
+            <input type="email" id="email" class="login-input" placeholder="Email">
+            <input type="password" id="password" class="login-input" placeholder="Passwort">
+            <button class="login-btn" onclick="login()">Enter Dashboard</button>
+            <p id="login-msg" style="color: var(--danger); font-size: 0.9em; margin-top: 10px;"></p>
+        </div>
     </div>
 
-    <div class="main-container">
-        <div style="display: flex; flex-direction: column; gap: 20px;">
-            
-            <div class="panel players-panel" style="height: 400px;">
-                <h3>Online Players</h3>
-                <input type="text" class="search-bar" placeholder="Search...">
-                <ul class="player-list">
-                    <li class="player-item active">Player123</li>
-                    <li class="player-item">ServerAdmin</li>
-                    <li class="player-item">GamerX</li>
-                    <li class="player-item">Player21</li>
-                    <li class="player-item">Player12</li>
-                    <li class="player-item">Player13</li>
-                    <li class="player-item">Player14</li>
-                    <li class="player-item">Player15</li>
-                    <li class="player-item">Player16</li>
-                </ul>
+    <div id="dashboard" class="hidden" style="width: 100%; display: flex;">
+        
+        <div class="sidebar">
+            <div class="brand">
+                <i class="fas fa-shield-alt"></i> ADMIN PANEL
             </div>
+            <button class="nav-btn active" onclick="switchTab('players')">
+                <i class="fas fa-users"></i> Spieler
+            </button>
+            <button class="nav-btn" onclick="switchTab('todos')">
+                <i class="fas fa-tasks"></i> To-Do Liste
+            </button>
+            
+            <div class="logout-area">
+                <button class="nav-btn" onclick="logout()" style="color: var(--danger);">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </div>
 
-            <div class="panel actions-panel">
-                <h3>Player Actions</h3>
-                <button class="action-btn btn-revive">Revive</button>
-                <button class="action-btn btn-kick">Kick</button>
+        <div class="main-content">
+            
+            <div id="page-players" class="page active">
+                <h2><i class="fas fa-gamepad"></i> Server Management</h2>
                 
-                <div class="action-group">
-                    <h4>Give Item</h4>
-                    <div class="input-group">
-                        <input type="text" class="action-input" placeholder="Item Name">
-                        <input type="number" class="action-input small" placeholder="Qty" value="1">
-                        <button class="btn-action">Give</button>
+                <div class="dashboard-grid">
+                    <div class="card">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                            <h3 style="margin:0;">Online</h3>
+                            <button onclick="fetchPlayers()" style="background:none; border:none; color:var(--accent); cursor:pointer;"><i class="fas fa-sync"></i></button>
+                        </div>
+                        <input type="text" id="playerSearch" class="search-bar" placeholder="Spieler suchen..." onkeyup="filterPlayers()">
+                        <ul id="playerList" class="player-list">
+                            <li style="padding:20px; text-align:center; color:gray;">Lade Spieler...</li>
+                        </ul>
+                    </div>
+
+                    <div class="card">
+                        <h3 id="selectedPlayerName" style="color: var(--accent); margin-top:0;">Kein Spieler ausgewählt</h3>
+                        <input type="hidden" id="selectedPlayerId">
+                        
+                        <div id="actionPanel" style="opacity: 0.5; pointer-events: none;">
+                            
+                            <div class="action-grid">
+                                <button class="btn btn-revive" onclick="sendAction('revive')"><i class="fas fa-heartbeat"></i> Revive</button>
+                                <button class="btn btn-kick" onclick="sendAction('kick')"><i class="fas fa-boot"></i> Kick</button>
+                            </div>
+
+                            <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 0;">
+
+                            <div class="input-group">
+                                <label><i class="fas fa-box"></i> Item geben</label>
+                                <div class="input-row">
+                                    <input type="text" id="itemName" class="input-mini" placeholder="Item (z.B. bread)">
+                                    <input type="number" id="itemAmount" class="input-mini" placeholder="Menge" value="1" style="max-width: 60px;">
+                                    <button class="btn btn-blue" onclick="sendAction('giveitem')">Geben</button>
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <label><i class="fas fa-money-bill-wave"></i> Geld geben</label>
+                                <div class="input-row">
+                                    <input type="number" id="moneyAmount" class="input-mini" placeholder="Betrag">
+                                    <button class="btn btn-blue" onclick="sendAction('givemoney')">Senden</button>
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <label><i class="fas fa-gun"></i> Waffe geben</label>
+                                <div class="input-row">
+                                    <input type="text" id="weaponName" class="input-mini" placeholder="ID (z.B. weapon_pistol)">
+                                    <input type="number" id="weaponAmmo" class="input-mini" placeholder="Schuss" value="100" style="max-width: 60px;">
+                                    <button class="btn btn-blue" onclick="sendAction('giveweapon')">Geben</button>
+                                </div>
+                            </div>
+
+                            <button class="btn btn-ban" onclick="sendAction('ban')"><i class="fas fa-ban"></i> BANNEN</button>
+                        </div>
                     </div>
                 </div>
-
-                <div class="action-group">
-                    <h4>Give Money</h4>
-                    <div class="input-group">
-                        <input type="number" class="action-input" placeholder="Amount">
-                        <button class="btn-action">Give</button>
-                    </div>
-                </div>
-
-                <div class="action-group">
-                    <h4>Give Weapon</h4>
-                    <div class="input-group">
-                        <input type="text" class="action-input" placeholder="Weapon Name (e.g., weapon_pistol)">
-                    </div>
-                    <div class="input-group">
-                        <input type="number" class="action-input" placeholder="Ammo Count" value="250">
-                        <button class="btn-action">Give</button>
-                    </div>
-                </div>
-
-                <button class="action-btn btn-ban">Ban</button>
             </div>
 
-            <div class="panel">
-                <h3>Server Stats</h3>
-                <div class="stats-panel">
-                    <span>Online</span>
-                    <span>0</span>
+            <div id="page-todos" class="page">
+                <h2><i class="fas fa-clipboard-list"></i> To-Do Liste</h2>
+                
+                <div class="todo-container">
+                    <div class="todo-header">
+                        <select id="todoPriority" class="priority-select">
+                            <option value="low">Niedrig</option>
+                            <option value="medium" selected>Mittel</option>
+                            <option value="high">Hoch 🚨</option>
+                        </select>
+                        <input type="text" id="todoInput" class="search-bar" placeholder="Neue Aufgabe erstellen..." style="margin:0;">
+                        <button class="btn btn-blue" style="width: 100px;" onclick="addTodo()">+ Add</button>
+                    </div>
+
+                    <div id="todoList">
+                        </div>
                 </div>
             </div>
 
         </div>
+    </div>
 
-        <div class="panel todo-panel" style="height: 800px;">
-            <h3>To-Do List</h3>
-            <div class="priority-filters">
-                <span>Priority: </span>
-                <button class="filter-btn active">All</button>
-                <button class="filter-btn">Low</button>
-                <button class="filter-btn">Medium</button>
-                <button class="filter-btn">High</button>
-            </div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+
+        // ==========================================
+        // KONFIGURATION (HIER ANPASSEN!)
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyDiqf5q8xmyuBO_wTNzW_gV3t-FdZ6kYzc",
+            authDomain: "battleroyalegame-a15b2.firebaseapp.com",
+            databaseURL: "https://battleroyalegame-a15b2-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "battleroyalegame-a15b2",
+            storageBucket: "battleroyalegame-a15b2.firebasestorage.app",
+            messagingSenderId: "294232206552",
+            appId: "1:294232206552:web:d7c887e38e03e08361fbad",
+            measurementId: "G-JBJKLZ0K5X"
+        };
+
+        const SERVER_URL = "http://185.117.3.227:40120/my_web_api"; 
+        const API_SECRET = "mein_geheimes_passwort_123";
+        // ==========================================
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // --- AUTH ---
+        window.login = () => {
+            const e = document.getElementById('email').value;
+            const p = document.getElementById('password').value;
+            signInWithEmailAndPassword(auth, e, p).catch(err => {
+                document.getElementById('login-msg').innerText = "Fehler: " + err.message;
+            });
+        };
+
+        window.logout = () => signOut(auth);
+
+        onAuthStateChanged(auth, user => {
+            const loginScreen = document.getElementById('login-screen');
+            const dashboard = document.getElementById('dashboard');
             
-            <div class="todo-input-container">
-                <input type="text" class="todo-input" placeholder="Input task...">
-                <button class="btn-add-todo">Add</button>
-            </div>
+            if(user) {
+                loginScreen.classList.add('hidden');
+                dashboard.style.display = 'flex'; // Fix für flex layout
+                dashboard.classList.remove('hidden');
+                fetchPlayers();
+                loadTodos();
+            } else {
+                loginScreen.classList.remove('hidden');
+                dashboard.classList.add('hidden');
+            }
+        });
 
-            <ul class="todo-list">
-                <li class="todo-item low">
-                    <input type="checkbox" checked>
-                    <span class="todo-text">Task Task 1</span>
-                    <button class="btn-delete-todo">🗑️</button>
-                </li>
-                <li class="todo-item medium">
-                    <input type="checkbox" checked>
-                    <span class="todo-text">Task Task 2</span>
-                    <button class="btn-delete-todo">🗑️</button>
-                </li>
-                <li class="todo-item high">
-                    <input type="checkbox">
-                    <span class="todo-text">Task Task 3</span>
-                    <button class="btn-delete-todo">🗑️</button>
-                </li>
-            </ul>
-        </div>
-    </div>
+        // --- NAVIGATION TABS ---
+        window.switchTab = (tabName) => {
+            // Buttons updaten
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            event.currentTarget.classList.add('active'); // Der geklickte Button
 
-    <div class="logout-btn-container">
-        <button class="btn-logout">Logout</button>
-    </div>
+            // Seiten umschalten
+            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+            document.getElementById('page-' + tabName).classList.add('active');
+        }
 
+        // --- PLAYER LOGIC ---
+        let allPlayers = []; // Speichert alle Spieler für die Suche
+
+        window.fetchPlayers = async () => {
+            // Mock Data falls Server offline (zum Testen) - kann man später entfernen
+            /*
+            allPlayers = [
+                {id: 1, name: "Flo.Saftig"},
+                {id: 2, name: "GamerXYZ"},
+                {id: 42, name: "AdminBoss"}
+            ];
+            renderPlayers(allPlayers);
+            return; 
+            */
+            
+            // ECHTE ABFRAGE
+            try {
+                // Wir nutzen hier /api/players endpoint wenn vorhanden, oder fallback
+                // Wenn du das Script von vorhin nutzt, muss server.lua einen /players endpoint haben
+                // Ich nehme an, wir schicken command "getPlayers" oder ähnlich.
+                // DA server.lua oben das nicht hatte, hier eine Anpassung:
+                // Wir rufen den endpoint auf. Wenn server.lua das nicht kann, 
+                // musst du in server.lua oben: if path == '/players' ... hinzufügen.
+                
+                // Wir versuchen es über den command endpoint oder passen server.lua an.
+                // Hier Annahme: Server.lua liefert JSON Liste bei GET /players
+                const res = await fetch(SERVER_URL.replace('/command', '/players')); 
+                if(res.ok) {
+                    allPlayers = await res.json();
+                    renderPlayers(allPlayers);
+                }
+            } catch(e) {
+                console.log("Konnte Spieler nicht laden (vielleicht offline?)");
+                document.getElementById('playerList').innerHTML = '<li style="padding:20px; text-align:center; color:#ef4444;">Server offline oder nicht erreichbar</li>';
+            }
+        };
+
+        window.renderPlayers = (players) => {
+            const list = document.getElementById('playerList');
+            list.innerHTML = "";
+            players.forEach(p => {
+                const li = document.createElement('li');
+                li.className = 'player-item';
+                li.innerHTML = `<div><span class="status-dot"></span> [${p.id}] ${p.name}</div> <i class="fas fa-chevron-right" style="color:#64748b"></i>`;
+                li.onclick = () => selectPlayer(p.id, p.name, li);
+                list.appendChild(li);
+            });
+        };
+
+        window.filterPlayers = () => {
+            const term = document.getElementById('playerSearch').value.toLowerCase();
+            const filtered = allPlayers.filter(p => p.name.toLowerCase().includes(term) || p.id.toString().includes(term));
+            renderPlayers(filtered);
+        };
+
+        window.selectPlayer = (id, name, element) => {
+            // UI Update
+            document.querySelectorAll('.player-item').forEach(el => el.classList.remove('selected'));
+            element.classList.add('selected');
+
+            // Daten setzen
+            document.getElementById('selectedPlayerName').innerText = `Verwalte: ${name} (ID: ${id})`;
+            document.getElementById('selectedPlayerName').style.color = "white";
+            document.getElementById('selectedPlayerId').value = id;
+            
+            // Panel aktivieren
+            document.getElementById('actionPanel').style.opacity = "1";
+            document.getElementById('actionPanel').style.pointerEvents = "all";
+        };
+
+        window.sendAction = async (actionType) => {
+            const id = document.getElementById('selectedPlayerId').value;
+            if(!id) return;
+
+            const payload = {
+                secret: API_SECRET,
+                action: actionType,
+                targetId: id
+            };
+
+            // Zusätzliche Daten je nach Aktion
+            if(actionType === 'giveitem') {
+                payload.item = document.getElementById('itemName').value;
+                payload.amount = document.getElementById('itemAmount').value;
+            } else if (actionType === 'givemoney') {
+                payload.amount = document.getElementById('moneyAmount').value;
+                payload.item = 'money'; // Server Logic muss das erkennen
+            } else if (actionType === 'giveweapon') {
+                payload.item = document.getElementById('weaponName').value;
+                payload.amount = document.getElementById('weaponAmmo').value;
+            }
+
+            try {
+                // Endpoint auf command setzen
+                const res = await fetch(SERVER_URL + "/command", {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                alert(data.message || "Aktion ausgeführt!");
+            } catch(e) {
+                alert("Fehler beim Senden!");
+            }
+        };
+
+        // --- TODO LOGIC ---
+        window.addTodo = async () => {
+            const txt = document.getElementById('todoInput').value;
+            const prio = document.getElementById('todoPriority').value;
+            if(txt) {
+                await addDoc(collection(db, "todos"), { 
+                    task: txt, 
+                    priority: prio,
+                    created: Date.now() 
+                });
+                document.getElementById('todoInput').value = '';
+            }
+        };
+
+        window.loadTodos = () => {
+            const q = query(collection(db, "todos"), orderBy("created", "desc"));
+            onSnapshot(q, snaps => {
+                const list = document.getElementById('todoList');
+                list.innerHTML = "";
+                snaps.forEach(docSnap => {
+                    const data = docSnap.data();
+                    const div = document.createElement('div');
+                    // Klasse basierend auf Priority
+                    div.className = `todo-item ${data.priority || 'medium'}`;
+                    div.innerHTML = `
+                        <span>${data.task}</span>
+                        <button onclick="delTodo('${docSnap.id}')" style="background:none; border:none; color:#94a3b8; cursor:pointer;"><i class="fas fa-trash"></i></button>
+                    `;
+                    list.appendChild(div);
+                });
+            });
+        };
+        window.delTodo = async (id) => deleteDoc(doc(db, "todos", id));
+
+    </script>
 </body>
 </html>
