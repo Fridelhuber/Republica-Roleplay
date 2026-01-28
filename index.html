@@ -6,451 +6,279 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         :root {
-            --bg-color: #0f172a;
-            --sidebar-bg: #1e293b;
-            --card-bg: rgba(30, 41, 59, 0.7);
-            --accent: #3b82f6; 
-            --accent-hover: #2563eb;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --danger: #ef4444;
-            --success: #10b981;
-            --warning: #f59e0b;
+            --bg-color: #0f172a; --sidebar-bg: #1e293b; --card-bg: rgba(30, 41, 59, 0.7);
+            --accent: #3b82f6; --text-main: #f8fafc; --danger: #ef4444; --success: #10b981;
         }
 
         body {
-            margin: 0; font-family: 'Segoe UI', Inter, sans-serif;
-            background-color: var(--bg-color);
-            background-image: radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
-                              radial-gradient(at 100% 100%, rgba(15, 23, 42, 1) 0px, transparent 50%);
+            margin: 0; font-family: 'Segoe UI', sans-serif; background-color: var(--bg-color);
             color: var(--text-main); height: 100vh; display: flex; overflow: hidden;
         }
 
-        /* LOGIN SCREEN */
+        /* --- LOGIN --- */
         #login-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--bg-color); display: flex; justify-content: center; align-items: center; z-index: 1000;
         }
         .login-box {
-            background: var(--sidebar-bg); padding: 40px; border-radius: 16px; width: 350px;
-            text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.05);
+            background: var(--sidebar-bg); padding: 40px; border-radius: 16px; width: 350px; text-align: center;
+            border: 1px solid rgba(255,255,255,0.1);
         }
         .login-input {
-            width: 100%; padding: 12px; margin: 10px 0; background: rgba(0,0,0,0.2);
+            width: 100%; padding: 12px; margin: 10px 0; background: rgba(0,0,0,0.3);
             border: 1px solid #334155; border-radius: 8px; color: white; box-sizing: border-box;
         }
         .login-btn {
             width: 100%; padding: 12px; background: var(--accent); border: none; color: white;
-            border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; transition: 0.3s;
+            border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px;
         }
-        .login-btn:hover { background: var(--accent-hover); }
 
-        /* LAYOUT */
-        .sidebar {
-            width: 260px; background: var(--sidebar-bg); padding: 20px; display: flex;
-            flex-direction: column; border-right: 1px solid rgba(255,255,255,0.05);
-        }
-        .brand {
-            font-size: 24px; font-weight: bold; color: var(--accent); margin-bottom: 40px;
-            display: flex; align-items: center; gap: 10px;
-        }
-        .nav-btn {
-            background: transparent; border: none; color: var(--text-muted); padding: 15px;
-            text-align: left; cursor: pointer; border-radius: 10px; font-size: 16px; transition: 0.2s;
-            margin-bottom: 5px; display: flex; align-items: center; gap: 12px;
-        }
-        .nav-btn:hover, .nav-btn.active {
-            background: var(--accent); color: white; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-        }
-        
+        /* --- DASHBOARD --- */
+        .sidebar { width: 260px; background: var(--sidebar-bg); padding: 20px; display: flex; flex-direction: column; }
         .main-content { flex: 1; padding: 30px; overflow-y: auto; }
-        .page { display: none; animation: fadeIn 0.3s ease; }
-        .page.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        h2 { margin-top: 0; font-size: 28px; border-bottom: 2px solid rgba(255,255,255,0.05); padding-bottom: 15px; }
-
         .dashboard-grid { display: grid; grid-template-columns: 300px 1fr; gap: 25px; height: calc(100vh - 100px); }
         .card {
-            background: var(--card-bg); backdrop-filter: blur(10px); border-radius: 12px;
-            padding: 20px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column;
+            background: var(--card-bg); border-radius: 12px; padding: 20px;
+            border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column;
         }
 
-        /* PLAYERS */
-        .search-bar {
-            background: rgba(0,0,0,0.3); border: 1px solid #334155; padding: 10px;
-            border-radius: 8px; color: white; width: 100%; margin-bottom: 15px; box-sizing: border-box;
-        }
+        /* --- PLAYER LIST --- */
         .player-list { list-style: none; padding: 0; margin: 0; overflow-y: auto; flex: 1; }
         .player-item {
-            padding: 12px; background: rgba(255,255,255,0.03); margin-bottom: 8px; border-radius: 8px;
-            cursor: pointer; transition: 0.2s; display: flex; justify-content: space-between; align-items: center;
+            padding: 12px; background: rgba(255,255,255,0.05); margin-bottom: 8px; border-radius: 8px;
+            cursor: pointer; display: flex; justify-content: space-between; align-items: center;
         }
-        .player-item:hover, .player-item.selected {
-            background: rgba(59, 130, 246, 0.2); border-left: 3px solid var(--accent);
-        }
-        .status-dot { height: 8px; width: 8px; background: var(--success); border-radius: 50%; display: inline-block; margin-right: 8px; }
-        .status-dot.offline { background: #64748b; }
+        .player-item.selected { background: rgba(59, 130, 246, 0.3); border-left: 3px solid var(--accent); }
+        
+        /* STATUS DOTS */
+        .status-dot { height: 10px; width: 10px; border-radius: 50%; display: inline-block; margin-right: 10px; }
+        .online { background-color: var(--success); box-shadow: 0 0 5px var(--success); }
+        .offline { background-color: #64748b; }
 
         /* ACTIONS */
-        .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .btn { padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; color: white; transition: 0.2s; }
-        .btn:active { transform: scale(0.98); }
-        .btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; } /* Deaktivierter Look */
-        
+        .btn { padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; width: 100%; margin-bottom: 10px; }
+        .btn:disabled { opacity: 0.3; cursor: not-allowed; }
         .btn-revive { background: var(--success); }
-        .btn-kick { background: var(--warning); color: black; }
-        .btn-ban { background: var(--danger); width: 100%; margin-top: 15px; }
+        .btn-kick { background: #f59e0b; color: black; }
+        .btn-ban { background: var(--danger); }
         .btn-blue { background: var(--accent); }
-
-        .input-group { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; margin-bottom: 15px; }
-        .input-group label { display: block; margin-bottom: 5px; font-size: 0.9em; color: var(--text-muted); }
-        .input-row { display: flex; gap: 10px; }
-        .input-mini { background: #0f172a; border: 1px solid #334155; color: white; padding: 8px; border-radius: 6px; flex: 1; }
-
-        /* TODO */
-        .todo-container { max-width: 800px; margin: 0 auto; }
-        .todo-header { display: flex; gap: 10px; margin-bottom: 20px; }
-        .priority-select { background: #1e293b; color: white; border: 1px solid #334155; border-radius: 8px; padding: 0 10px; }
-        .todo-item {
-            background: var(--card-bg); padding: 15px; margin-bottom: 10px; border-radius: 8px;
-            display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--accent);
-        }
-        .todo-item.high { border-left-color: var(--danger); }
-        .todo-item.medium { border-left-color: var(--warning); }
-        .todo-item.low { border-left-color: var(--success); }
         
         .hidden { display: none !important; }
+        .input-mini { background: #0f172a; border: 1px solid #334155; color: white; padding: 8px; width: 100%; margin-bottom: 5px; }
     </style>
 </head>
 <body>
 
     <div id="login-screen">
         <div class="login-box">
-            <h2 style="border:none; color: var(--accent);"><i class="fas fa-lock"></i> Admin Login</h2>
+            <h2 style="color: var(--accent);">Admin Login</h2>
             <input type="email" id="email" class="login-input" placeholder="Email" value="flo.saftig526@gmail.com">
             <input type="password" id="password" class="login-input" placeholder="Passwort">
             <button class="login-btn" onclick="login()">Einloggen</button>
-            <p id="login-msg" style="color: var(--danger); font-size: 0.9em; margin-top: 10px;"></p>
+            <p id="login-msg" style="color: var(--danger); margin-top: 10px;"></p>
         </div>
     </div>
 
-    <div id="dashboard" class="hidden" style="width: 100%; display: flex;">
-        
+    <div id="dashboard" class="hidden">
         <div class="sidebar">
-            <div class="brand">
-                <i class="fas fa-shield-alt"></i> ADMIN PANEL
-            </div>
-            <button class="nav-btn active" onclick="switchTab('players')">
-                <i class="fas fa-users"></i> Spieler
-            </button>
-            <button class="nav-btn" onclick="switchTab('todos')">
-                <i class="fas fa-tasks"></i> To-Do Liste
-            </button>
-            
-            <div style="margin-top: auto;">
-                <button class="nav-btn" onclick="logout()" style="color: var(--danger);">
-                    <i class="fas fa-sign-out-alt"></i> Logout
-                </button>
-            </div>
+            <h2 style="color: var(--accent);">ADMIN</h2>
+            <button class="login-btn" onclick="logout()" style="background: var(--danger); margin-top: auto;">Logout</button>
         </div>
 
         <div class="main-content">
-            
-            <div id="page-players" class="page active">
-                <h2><i class="fas fa-gamepad"></i> Server Management</h2>
+            <div class="dashboard-grid">
                 
-                <div class="dashboard-grid">
-                    <div class="card">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                            <h3 style="margin:0;">Online & Suche</h3>
-                            <button onclick="fetchPlayers()" style="background:none; border:none; color:var(--accent); cursor:pointer;"><i class="fas fa-sync"></i></button>
-                        </div>
-                        <input type="text" id="playerSearch" class="search-bar" placeholder="Name suchen... (Enter für Offline Suche)">
-                        <ul id="playerList" class="player-list">
-                            <li style="padding:20px; text-align:center; color:gray;">Warte auf Login...</li>
-                        </ul>
-                    </div>
+                <div class="card">
+                    <h3>Spieler Liste</h3>
+                    <input type="text" id="playerSearch" class="login-input" placeholder="Suche (Enter für Offline DB)...">
+                    <ul id="playerList" class="player-list"></ul>
+                </div>
 
-                    <div class="card">
-                        <h3 id="selectedPlayerName" style="color: var(--accent); margin-top:0;">Kein Spieler ausgewählt</h3>
-                        <input type="hidden" id="selectedPlayerId">
+                <div class="card">
+                    <h3 id="selectedPlayerName">Keiner ausgewählt</h3>
+                    <input type="hidden" id="selectedPlayerId">
+                    
+                    <div id="actionPanel" style="opacity: 0.5; pointer-events: none;">
+                        <p id="offlineMsg" style="color: var(--danger); display: none;">⚠ SPIELER IST OFFLINE</p>
                         
-                        <div id="offlineWarning" style="color: #ef4444; margin-bottom: 10px; display: none;">
-                            <i class="fas fa-exclamation-triangle"></i> Spieler ist OFFLINE. Aktionen eingeschränkt.
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <button id="btnRevive" class="btn btn-revive" onclick="sendAction('revive')">Revive</button>
+                            <button id="btnKick" class="btn btn-kick" onclick="sendAction('kick')">Kick</button>
                         </div>
-                        
-                        <div id="actionPanel" style="opacity: 0.5; pointer-events: none;">
-                            
-                            <div class="action-grid">
-                                <button id="btnRevive" class="btn btn-revive" onclick="sendAction('revive')"><i class="fas fa-heartbeat"></i> Revive</button>
-                                <button id="btnKick" class="btn btn-kick" onclick="sendAction('kick')"><i class="fas fa-boot"></i> Kick</button>
-                            </div>
 
-                            <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 0;">
+                        <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 0;">
 
-                            <div class="input-group">
-                                <label><i class="fas fa-box"></i> Item geben</label>
-                                <div class="input-row">
-                                    <input type="text" id="itemName" class="input-mini" placeholder="Item (z.B. bread)">
-                                    <input type="number" id="itemAmount" class="input-mini" placeholder="Menge" value="1" style="max-width: 60px;">
-                                    <button id="btnItem" class="btn btn-blue" onclick="sendAction('giveitem')">Geben</button>
-                                </div>
-                            </div>
-
-                            <div class="input-group">
-                                <label><i class="fas fa-money-bill-wave"></i> Geld geben</label>
-                                <div class="input-row">
-                                    <input type="number" id="moneyAmount" class="input-mini" placeholder="Betrag">
-                                    <button id="btnMoney" class="btn btn-blue" onclick="sendAction('givemoney')">Senden</button>
-                                </div>
-                            </div>
-
-                            <div class="input-group">
-                                <label><i class="fas fa-gun"></i> Waffe geben</label>
-                                <div class="input-row">
-                                    <input type="text" id="weaponName" class="input-mini" placeholder="ID (z.B. weapon_pistol)">
-                                    <input type="number" id="weaponAmmo" class="input-mini" placeholder="Schuss" value="100" style="max-width: 60px;">
-                                    <button id="btnWeapon" class="btn btn-blue" onclick="sendAction('giveweapon')">Geben</button>
-                                </div>
-                            </div>
-
-                            <button id="btnBan" class="btn btn-ban" onclick="sendAction('ban')"><i class="fas fa-ban"></i> BANNEN</button>
+                        <label>Item geben</label>
+                        <div style="display:flex; gap:5px;">
+                            <input type="text" id="itemName" class="input-mini" placeholder="Item Name">
+                            <input type="number" id="itemAmount" class="input-mini" value="1" style="width: 50px;">
+                            <button id="btnItem" class="btn btn-blue" onclick="sendAction('giveitem')" style="width: auto;">GO</button>
                         </div>
+
+                        <label>Geld geben</label>
+                        <div style="display:flex; gap:5px;">
+                            <input type="number" id="moneyAmount" class="input-mini" placeholder="Betrag">
+                            <button id="btnMoney" class="btn btn-blue" onclick="sendAction('givemoney')" style="width: auto;">GO</button>
+                        </div>
+
+                        <button id="btnBan" class="btn btn-ban" onclick="sendAction('ban')" style="margin-top: 20px;">BANNEN</button>
                     </div>
                 </div>
             </div>
-
-            <div id="page-todos" class="page">
-                <h2><i class="fas fa-clipboard-list"></i> To-Do Liste</h2>
-                
-                <div class="todo-container">
-                    <div class="todo-header">
-                        <select id="todoPriority" class="priority-select">
-                            <option value="low">Niedrig</option>
-                            <option value="medium" selected>Mittel</option>
-                            <option value="high">Hoch 🚨</option>
-                        </select>
-                        <input type="text" id="todoInput" class="search-bar" placeholder="Neue Aufgabe erstellen..." style="margin:0;">
-                        <button class="btn btn-blue" style="width: 100px;" onclick="addTodo()">+ Add</button>
-                    </div>
-
-                    <div id="todoList"></div>
-                </div>
-            </div>
-
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
+        // FIREBASE CONFIG
         const firebaseConfig = {
             apiKey: "AIzaSyDiqf5q8xmyuBO_wTNzW_gV3t-FdZ6kYzc",
             authDomain: "battleroyalegame-a15b2.firebaseapp.com",
-            databaseURL: "https://battleroyalegame-a15b2-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "battleroyalegame-a15b2",
-            storageBucket: "battleroyalegame-a15b2.firebasestorage.app",
-            messagingSenderId: "294232206552",
-            appId: "1:294232206552:web:d7c887e38e03e08361fbad",
-            measurementId: "G-JBJKLZ0K5X"
+            projectId: "battleroyalegame-a15b2"
         };
 
-        const SERVER_BASE_URL = "http://127.0.0.1:30120/admin_pannel_flo"; 
+        // SERVER URL (Dein lokaler Ordner)
+        const SERVER_URL = "http://127.0.0.1:30120/admin_pannel_flo"; 
         const API_SECRET = "mein_geheimes_passwort_123";
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        const db = getFirestore(app);
 
         // --- AUTH ---
         window.login = () => {
-            const e = document.getElementById('email').value;
-            const p = document.getElementById('password').value;
-            document.getElementById('login-msg').innerText = "Verbinde...";
-            signInWithEmailAndPassword(auth, e, p).catch(err => {
-                document.getElementById('login-msg').innerText = "Fehler: " + err.code;
-            });
-        };
+            signInWithEmailAndPassword(auth, document.getElementById('email').value, document.getElementById('password').value)
+            .catch(err => document.getElementById('login-msg').innerText = "Falsches Passwort!");
+        }
         window.logout = () => signOut(auth);
 
         onAuthStateChanged(auth, user => {
-            const loginScreen = document.getElementById('login-screen');
-            const dashboard = document.getElementById('dashboard');
             if(user) {
-                loginScreen.classList.add('hidden');
-                dashboard.style.display = 'flex';
-                dashboard.classList.remove('hidden');
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('dashboard').classList.remove('hidden');
                 fetchPlayers();
-                loadTodos();
-                setInterval(fetchPlayers, 5000);
+                setInterval(fetchPlayers, 5000); // Live Update alle 5s
             } else {
-                loginScreen.classList.remove('hidden');
-                dashboard.classList.add('hidden');
+                document.getElementById('login-screen').classList.remove('hidden');
+                document.getElementById('dashboard').classList.add('hidden');
             }
         });
 
-        window.switchTab = (tabName) => {
-            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-            event.currentTarget.classList.add('active');
-            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
-            document.getElementById('page-' + tabName).classList.add('active');
-        }
-
         // --- PLAYER LOGIC ---
-        let allPlayers = []; 
+        let onlinePlayers = [];
 
         window.fetchPlayers = async () => {
             try {
-                const res = await fetch(SERVER_BASE_URL + "/players");
+                const res = await fetch(SERVER_URL + "/players");
                 if(res.ok) {
-                    allPlayers = await res.json();
+                    onlinePlayers = await res.json();
+                    // Wenn keine Suche aktiv ist, zeige nur Online Spieler
                     if(document.getElementById('playerSearch').value.length < 3) {
-                        renderPlayers(allPlayers);
+                        renderList(onlinePlayers);
                     }
                 }
-            } catch(e) { console.warn(e); }
+            } catch(e) { console.log("Server offline?"); }
         };
 
-        window.renderPlayers = (players) => {
+        // Suche Logik (Online + Offline DB)
+        let searchTimer;
+        document.getElementById('playerSearch').onkeyup = () => {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(async () => {
+                const term = document.getElementById('playerSearch').value.toLowerCase();
+                
+                // 1. Online Filter
+                const onlineResults = onlinePlayers.filter(p => p.name.toLowerCase().includes(term));
+                
+                // 2. Offline DB Suche (nur wenn > 2 Zeichen)
+                let offlineResults = [];
+                if(term.length > 2) {
+                    try {
+                        const res = await fetch(SERVER_URL + "/search_offline", {
+                            method: 'POST', body: JSON.stringify({ query: term })
+                        });
+                        if(res.ok) offlineResults = await res.json();
+                    } catch(e) {}
+                }
+
+                // Kombinieren
+                renderList([...onlineResults, ...offlineResults]);
+            }, 500);
+        };
+
+        function renderList(players) {
             const list = document.getElementById('playerList');
-            const currentSelectedId = document.getElementById('selectedPlayerId').value;
+            const selectedId = document.getElementById('selectedPlayerId').value;
             list.innerHTML = "";
+
             if(players.length === 0) {
-                list.innerHTML = '<li style="padding:20px; text-align:center; color:gray;">Keine Spieler gefunden</li>';
+                list.innerHTML = "<div style='padding:20px; text-align:center; color:gray;'>Keine Spieler</div>";
                 return;
             }
+
             players.forEach(p => {
                 const li = document.createElement('li');
                 li.className = 'player-item';
-                if(p.id == currentSelectedId) li.classList.add('selected');
+                if(p.id == selectedId) li.classList.add('selected');
+
+                // ENTSCHEIDUNG: Grün oder Grau?
+                // p.online kommt direkt vom Server als true/false
+                const dotClass = (p.online === true) ? "status-dot online" : "status-dot offline";
+                const statusText = (p.online === true) ? "Online" : "Offline";
+
+                li.innerHTML = `
+                    <div><span class="${dotClass}"></span> <b>${p.name}</b> <small>(${p.id})</small></div>
+                    <small style="color:#aaa">${statusText}</small>
+                `;
                 
-                // Explizite Online/Offline Prüfung für CSS Klasse
-                const isOnline = (p.online === true);
-                const statusClass = isOnline ? "status-dot" : "status-dot offline";
-                const statusText = isOnline ? "" : " (Offline)";
-                
-                li.innerHTML = `<div><span class="${statusClass}"></span> [${p.id}] ${p.name} ${statusText}</div> <i class="fas fa-chevron-right" style="color:#64748b"></i>`;
-                // WICHTIG: Status an selectPlayer weitergeben
-                li.onclick = () => selectPlayer(p.id, p.name, li, isOnline);
+                li.onclick = () => selectPlayer(p);
                 list.appendChild(li);
             });
-        };
-
-        let searchTimeout;
-        document.getElementById('playerSearch').onkeyup = () => {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(doSearch, 500);
-        };
-
-        async function doSearch() {
-            const term = document.getElementById('playerSearch').value.toLowerCase();
-            const onlineFiltered = allPlayers.filter(p => p.name.toLowerCase().includes(term) || p.id.toString().includes(term));
-            
-            let offlineFound = [];
-            if(term.length > 2) {
-                try {
-                    const res = await fetch(SERVER_BASE_URL + "/search_offline", {
-                        method: 'POST', body: JSON.stringify({ query: term })
-                    });
-                    if(res.ok) offlineFound = await res.json();
-                } catch(e) {}
-            }
-            renderPlayers([...onlineFiltered, ...offlineFound]);
         }
 
-        // NEU: isOnline Parameter entscheidet über Buttons
-        window.selectPlayer = (id, name, element, isOnline) => {
+        window.selectPlayer = (p) => {
             document.querySelectorAll('.player-item').forEach(el => el.classList.remove('selected'));
-            element.classList.add('selected');
+            // Da wir die Liste neu rendern, markieren wir es visuell vielleicht nicht sofort, 
+            // aber wir speichern die ID
+            document.getElementById('selectedPlayerName').innerText = p.name;
+            document.getElementById('selectedPlayerId').value = p.id;
 
-            document.getElementById('selectedPlayerName').innerText = `Verwalte: ${name} (ID: ${id})`;
-            document.getElementById('selectedPlayerName').style.color = "white";
-            document.getElementById('selectedPlayerId').value = id;
-            
             const panel = document.getElementById('actionPanel');
-            panel.style.opacity = "1";
+            panel.style.opacity = "1"; 
             panel.style.pointerEvents = "all";
 
-            // LOGIK: Wenn Offline, Buttons sperren!
-            const btnRevive = document.getElementById('btnRevive');
-            const btnKick = document.getElementById('btnKick');
-            const btnItem = document.getElementById('btnItem');
-            const btnMoney = document.getElementById('btnMoney');
-            const btnWeapon = document.getElementById('btnWeapon');
-            const warning = document.getElementById('offlineWarning');
+            const isOffline = (p.online !== true);
+            
+            // Buttons deaktivieren wenn Offline
+            document.getElementById('btnRevive').disabled = isOffline;
+            document.getElementById('btnKick').disabled = isOffline;
+            document.getElementById('btnItem').disabled = isOffline;
+            document.getElementById('btnMoney').disabled = isOffline;
 
-            if (!isOnline) {
-                // SPERREN
-                btnRevive.disabled = true;
-                btnKick.disabled = true;
-                btnItem.disabled = true;
-                btnMoney.disabled = true;
-                btnWeapon.disabled = true;
-                warning.style.display = "block";
-            } else {
-                // ENTSPERREN
-                btnRevive.disabled = false;
-                btnKick.disabled = false;
-                btnItem.disabled = false;
-                btnMoney.disabled = false;
-                btnWeapon.disabled = false;
-                warning.style.display = "none";
-            }
+            // Warnung anzeigen
+            document.getElementById('offlineMsg').style.display = isOffline ? "block" : "none";
         };
 
-        window.sendAction = async (actionType) => {
+        window.sendAction = async (action) => {
             const id = document.getElementById('selectedPlayerId').value;
-            if(!id) return;
-
-            const payload = { secret: API_SECRET, action: actionType, targetId: id };
-            if(actionType === 'giveitem') {
+            const payload = { secret: API_SECRET, action: action, targetId: id };
+            
+            // Werte für Item/Geld holen
+            if(action === 'giveitem') {
                 payload.item = document.getElementById('itemName').value;
                 payload.amount = document.getElementById('itemAmount').value;
-            } else if (actionType === 'givemoney') {
-                payload.amount = document.getElementById('moneyAmount').value;
-                payload.item = 'money'; 
-            } else if (actionType === 'giveweapon') {
-                payload.item = document.getElementById('weaponName').value;
-                payload.amount = document.getElementById('weaponAmmo').value;
             }
+            if(action === 'givemoney') payload.amount = document.getElementById('moneyAmount').value;
 
             try {
-                const res = await fetch(SERVER_BASE_URL + "/command", {
-                    method: 'POST', headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify(payload)
+                const res = await fetch(SERVER_URL + "/command", {
+                    method: 'POST', body: JSON.stringify(payload)
                 });
                 const data = await res.json();
-                alert(data.message || "Aktion ausgeführt!");
-            } catch(e) { alert("Fehler: " + e.message); }
-        };
-
-        window.addTodo = async () => {
-            const txt = document.getElementById('todoInput').value;
-            const prio = document.getElementById('todoPriority').value;
-            if(txt) {
-                await addDoc(collection(db, "todos"), { task: txt, priority: prio, created: Date.now() });
-                document.getElementById('todoInput').value = '';
-            }
-        };
-
-        window.loadTodos = () => {
-            const q = query(collection(db, "todos"), orderBy("created", "desc"));
-            onSnapshot(q, snaps => {
-                const list = document.getElementById('todoList');
-                list.innerHTML = "";
-                snaps.forEach(docSnap => {
-                    const data = docSnap.data();
-                    const div = document.createElement('div');
-                    div.className = `todo-item ${data.priority || 'medium'}`;
-                    div.innerHTML = `<span>${data.task}</span> <button onclick="delTodo('${docSnap.id}')" style="background:none; border:none; color:#94a3b8; cursor:pointer;"><i class="fas fa-trash"></i></button>`;
-                    list.appendChild(div);
-                });
-            });
-        };
-        window.delTodo = async (id) => deleteDoc(doc(db, "todos", id));
+                alert(data.message);
+            } catch(e) { alert("Fehler: " + e); }
+        }
     </script>
 </body>
 </html>
