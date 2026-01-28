@@ -14,6 +14,7 @@
             --text: #ffffff;
             --text-dim: #8ca0b8;
             --danger: #ff2a6d;
+            --warning: #ff9f1c;
             --success: #05ffa1;
         }
 
@@ -34,6 +35,7 @@
             animation: slideIn 0.3s ease-out; font-weight: bold;
         }
         .toast.error { border-left-color: var(--danger); }
+        .toast.success { border-left-color: var(--success); }
         @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
 
         /* --- LOGIN --- */
@@ -78,12 +80,33 @@
         .content { flex: 1; padding: 30px; display: flex; gap: 30px; }
 
         /* --- STYLES --- */
-        .panel-full {
-            flex: 1; background: var(--panel); border: 1px solid var(--border);
-            border-radius: 10px; padding: 20px; display: flex; flex-direction: column;
-        }
+        .panel-full { flex: 1; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 20px; display: flex; flex-direction: column; }
         .panel-list { width: 350px; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 20px; display: flex; flex-direction: column; }
         .panel-detail { flex: 1; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 30px; position: relative; }
+
+        /* BANNLISTE ITEM */
+        .ban-item {
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(255,255,255,0.03); padding: 15px; border-radius: 6px;
+            margin-bottom: 10px; border-left: 3px solid var(--danger);
+        }
+        .ban-info h4 { margin: 0; color: white; }
+        .ban-info small { color: var(--text-dim); }
+
+        /* TODO ITEM */
+        .todo-item {
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(255,255,255,0.03); padding: 15px; border-radius: 6px;
+            margin-bottom: 10px; border-left: 4px solid #555;
+        }
+        .priority-high { border-left-color: var(--danger); }
+        .priority-medium { border-left-color: var(--warning); }
+        .priority-low { border-left-color: var(--success); }
+        
+        .todo-badge { font-size: 10px; padding: 2px 6px; border-radius: 3px; color:black; font-weight: bold; margin-right: 10px;}
+        .badge-high { background: var(--danger); }
+        .badge-medium { background: var(--warning); }
+        .badge-low { background: var(--success); }
 
         .player-item {
             padding: 12px; margin-bottom: 5px; background: rgba(255,255,255,0.03);
@@ -93,14 +116,6 @@
         .player-item:hover { background: rgba(255,255,255,0.08); }
         .player-item.selected { background: rgba(0, 242, 255, 0.1); border-left-color: var(--neon); }
         
-        .ban-item {
-            display: flex; justify-content: space-between; align-items: center;
-            background: rgba(255,255,255,0.03); padding: 15px; border-radius: 6px;
-            margin-bottom: 10px; border-left: 3px solid var(--danger);
-        }
-        .ban-info h4 { margin: 0; color: white; }
-        .ban-info small { color: var(--text-dim); }
-
         .profile-pic {
             width: 80px; height: 80px; border-radius: 50%; border: 2px solid var(--neon);
             display: flex; justify-content: center; align-items: center; font-size: 40px;
@@ -207,15 +222,6 @@
                         </div>
                     </div>
 
-                    <div class="action-card">
-                        <span style="font-size:12px; color:#888;">WAFFE GEBEN</span>
-                        <div style="display:flex; gap:10px; margin-top:5px;">
-                            <input id="weaponName" class="inp" style="margin:0" placeholder="Waffen ID">
-                            <input id="weaponAmmo" type="number" class="inp" style="margin:0; width:70px;" value="200">
-                            <button class="mini-btn" onclick="sendAction('giveweapon')"><i class="fas fa-check"></i></button>
-                        </div>
-                    </div>
-
                     <div style="margin-top:20px; border-top:1px solid #333; padding-top:20px;">
                         <span style="color:var(--danger); font-weight:bold;">SPIELER BANNEN</span>
                         <div style="display:flex; gap:10px; margin-top:10px;">
@@ -248,6 +254,12 @@
             <div class="panel-full" style="max-width:800px; margin:0 auto; width:100%;">
                 <h2 style="color:var(--neon); margin-top:0;">AUFGABEN & NOTIZEN</h2>
                 <div style="display:flex; gap:10px; margin-bottom:20px;">
+                    <select id="todoPriority" class="inp" style="max-width: 100px;">
+                        <option value="low">Niedrig</option>
+                        <option value="medium" selected>Mittel</option>
+                        <option value="high">Hoch</option>
+                    </select>
+                    
                     <input id="todoInput" class="inp" style="margin:0" placeholder="Neue Aufgabe...">
                     <button class="btn" style="margin:0; width:100px;" onclick="addTodo()">ADD</button>
                 </div>
@@ -318,7 +330,7 @@
             document.querySelectorAll('.nav-icon').forEach(el => el.classList.remove('active'));
             event.currentTarget.classList.add('active');
 
-            if(tab === 'bans') fetchBans(); // Liste laden wenn Tab geöffnet wird
+            if(tab === 'bans') fetchBans(); 
         };
 
         // PLAYERS
@@ -370,21 +382,24 @@
             document.getElementById('playerDetailContent').classList.add('hidden');
         }
 
-        // BANN LISTE (NEU)
+        // BANN LISTE (DEBUGGED)
         window.fetchBans = async () => {
             try {
+                console.log("Rufe Banns ab...");
                 const res = await fetch(SERVER_URL + "/bans");
+                
+                if(!res.ok) throw new Error("Server antwortet nicht");
+                
                 const bans = await res.json();
                 const list = document.getElementById('banListContainer');
                 list.innerHTML = "";
                 
-                if(bans.length === 0) {
+                if(!bans || bans.length === 0) {
                     list.innerHTML = "<div style='text-align:center; color:#888; margin-top:50px;'>Keine aktiven Banns</div>";
                     return;
                 }
 
                 bans.forEach(b => {
-                    // Zeit umrechnen
                     let expireText = "Permanent";
                     if(b.expire != 0) {
                         const date = new Date(b.expire * 1000);
@@ -402,7 +417,11 @@
                     `;
                     list.appendChild(div);
                 });
-            } catch(e) { console.log(e); }
+            } catch(e) { 
+                console.error(e);
+                notify("Konnte Bannliste nicht laden: " + e.message, "error");
+                document.getElementById('banListContainer').innerHTML = "<div style='text-align:center; color:#ef4444; margin-top:50px;'>Verbindungsfehler zum Server</div>";
+            }
         };
 
         window.unbanPlayer = async (dbId) => {
@@ -415,7 +434,7 @@
                 });
                 const data = await res.json();
                 notify(data.message);
-                fetchBans(); // Liste neu laden
+                fetchBans(); 
             } catch(e) { notify("Fehler beim Entbannen", "error"); }
         }
 
@@ -453,11 +472,17 @@
             } catch(e) { notify("Verbindungsfehler", "error"); }
         };
 
-        // TODOS
+        // TODOS MIT PRIORITÄT
         window.addTodo = async () => {
             const txt = document.getElementById('todoInput').value;
+            const prio = document.getElementById('todoPriority').value; // NEU: Prio holen
+            
             if(txt) {
-                await addDoc(collection(db, "todos"), { task: txt, created: Date.now() });
+                await addDoc(collection(db, "todos"), { 
+                    task: txt, 
+                    priority: prio, // NEU: Speichern
+                    created: Date.now() 
+                });
                 document.getElementById('todoInput').value = '';
             }
         };
@@ -469,14 +494,33 @@
                 list.innerHTML = "";
                 snaps.forEach(docSnap => {
                     const d = docSnap.data();
+                    
+                    // Priority Anzeige bestimmen
+                    let prioClass = "priority-medium";
+                    let badgeClass = "badge-medium";
+                    let prioText = "MITTEL";
+
+                    if(d.priority === "high") { prioClass = "priority-high"; badgeClass = "badge-high"; prioText = "HOCH"; }
+                    if(d.priority === "low") { prioClass = "priority-low"; badgeClass = "badge-low"; prioText = "NIEDRIG"; }
+
                     const div = document.createElement('div');
-                    div.style = "background:rgba(255,255,255,0.05); padding:15px; border-radius:6px; display:flex; justify-content:space-between; align-items:center;";
-                    div.innerHTML = `<span>${d.task}</span> <i class="fas fa-trash" style="color:var(--danger); cursor:pointer;" onclick="delTodo('${docSnap.id}')"></i>`;
+                    div.className = `todo-item ${prioClass}`;
+                    div.innerHTML = `
+                        <div style="display:flex; align-items:center;">
+                            <span class="todo-badge ${badgeClass}">${prioText}</span>
+                            <span>${d.task}</span>
+                        </div>
+                        <i class="fas fa-trash" style="color:var(--danger); cursor:pointer;" onclick="delTodo('${docSnap.id}')"></i>
+                    `;
                     list.appendChild(div);
                 });
             });
         };
         window.delTodo = async (id) => deleteDoc(doc(db, "todos", id));
+        
+        // Globals for onclick
+        window.unbanPlayer = unbanPlayer;
+        window.delTodo = delTodo;
     </script>
 </body>
 </html>
