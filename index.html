@@ -24,7 +24,7 @@
             color: var(--text); height: 100vh; display: flex; overflow: hidden;
         }
 
-        /* --- NOTIFICATIONS (TOAST) --- */
+        /* --- TOAST --- */
         #toast-container { position: absolute; top: 20px; right: 20px; z-index: 2000; }
         .toast {
             background: rgba(0,0,0,0.9); border-left: 4px solid var(--neon);
@@ -77,11 +77,14 @@
 
         .content { flex: 1; padding: 30px; display: flex; gap: 30px; }
 
-        /* --- LISTE --- */
-        .panel-list {
-            width: 350px; background: var(--panel); border: 1px solid var(--border);
+        /* --- STYLES --- */
+        .panel-full {
+            flex: 1; background: var(--panel); border: 1px solid var(--border);
             border-radius: 10px; padding: 20px; display: flex; flex-direction: column;
         }
+        .panel-list { width: 350px; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 20px; display: flex; flex-direction: column; }
+        .panel-detail { flex: 1; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 30px; position: relative; }
+
         .player-item {
             padding: 12px; margin-bottom: 5px; background: rgba(255,255,255,0.03);
             border-radius: 6px; cursor: pointer; display: flex; justify-content: space-between;
@@ -89,14 +92,15 @@
         }
         .player-item:hover { background: rgba(255,255,255,0.08); }
         .player-item.selected { background: rgba(0, 242, 255, 0.1); border-left-color: var(--neon); }
-        .p-id-badge { background: black; color: #888; padding: 2px 6px; border-radius: 4px; font-size: 12px; }
-
-        /* --- DETAILS --- */
-        .panel-detail {
-            flex: 1; background: var(--panel); border: 1px solid var(--border);
-            border-radius: 10px; padding: 30px; position: relative;
-        }
         
+        .ban-item {
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(255,255,255,0.03); padding: 15px; border-radius: 6px;
+            margin-bottom: 10px; border-left: 3px solid var(--danger);
+        }
+        .ban-info h4 { margin: 0; color: white; }
+        .ban-info small { color: var(--text-dim); }
+
         .profile-pic {
             width: 80px; height: 80px; border-radius: 50%; border: 2px solid var(--neon);
             display: flex; justify-content: center; align-items: center; font-size: 40px;
@@ -106,25 +110,13 @@
         .bar-container { width: 100%; background: #222; height: 8px; border-radius: 4px; margin-top: 5px; overflow: hidden; }
         .bar-val { height: 100%; transition: width 0.5s; }
         
-        .action-card {
-            background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; margin-bottom: 10px;
-            border: 1px solid #333;
-        }
-        .mini-btn {
-            background: var(--neon); border: none; padding: 0 15px; font-weight: bold;
-            cursor: pointer; border-radius: 4px;
-        }
-
+        .action-card { background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #333; }
+        .mini-btn { background: var(--neon); border: none; padding: 0 15px; font-weight: bold; cursor: pointer; border-radius: 4px; }
         .btn-red { background: var(--danger); color: white; }
         .btn-green { background: var(--success); color: black; }
-
-        .hidden { display: none !important; }
         
-        /* Dropdown für Bann Zeit */
-        .select-neo {
-            background: rgba(0,0,0,0.5); border: 1px solid #334155; color: white;
-            padding: 10px; border-radius: 4px; width: 100%; margin-bottom: 10px; outline: none;
-        }
+        .hidden { display: none !important; }
+        .select-neo { background: rgba(0,0,0,0.5); border: 1px solid #334155; color: white; padding: 10px; border-radius: 4px; width: 100%; margin-bottom: 10px; outline: none; }
     </style>
 </head>
 <body>
@@ -147,14 +139,16 @@
         
         <div class="sidebar">
             <img src="3D_Static.jpg" style="width:40px; border-radius:50%; border:1px solid var(--neon); margin-bottom:30px;">
-            <div class="nav-icon active" onclick="switchTab('players')"><i class="fas fa-users"></i></div>
-            <div class="nav-icon" onclick="switchTab('todos')"><i class="fas fa-list"></i></div>
+            
+            <div class="nav-icon active" onclick="switchTab('players')" title="Spieler"><i class="fas fa-users"></i></div>
+            <div class="nav-icon" onclick="switchTab('bans')" title="Bannliste"><i class="fas fa-user-slash"></i></div>
+            <div class="nav-icon" onclick="switchTab('todos')" title="Aufgaben"><i class="fas fa-list"></i></div>
+            
             <div style="flex:1"></div>
             <div class="nav-icon" style="color:var(--danger)" onclick="logout()"><i class="fas fa-sign-out-alt"></i></div>
         </div>
 
         <div id="page-players" class="content">
-            
             <div class="panel-list">
                 <h3 style="margin-top:0; color:var(--text-dim)">ONLINE SPIELER</h3>
                 <input type="text" id="search" class="inp" placeholder="Suchen..." onkeyup="renderList()">
@@ -162,18 +156,16 @@
             </div>
 
             <div class="panel-detail">
-                
                 <div id="emptyState" style="text-align:center; padding-top:100px; color:var(--text-dim);">
                     <i class="fas fa-mouse-pointer" style="font-size:50px; margin-bottom:20px;"></i>
                     <h2>Wähle einen Spieler</h2>
                 </div>
 
                 <div id="playerDetailContent" class="hidden">
-                    
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
                         <div>
                             <h1 id="pName" style="margin:0; font-size:36px; color:var(--neon);">Name</h1>
-                            <span id="pID" class="p-id-badge" style="font-size:16px; padding:5px 10px;">ID: 0</span>
+                            <span id="pID" style="background:black; color:#888; padding:2px 6px; border-radius:4px; font-size:16px;">ID: 0</span>
                         </div>
                         <div class="profile-pic"><i class="fas fa-user"></i></div>
                     </div>
@@ -236,13 +228,24 @@
                             <button class="btn btn-red" style="margin:0; width:120px; height:42px;" onclick="sendAction('ban')">BANNEN</button>
                         </div>
                     </div>
-
                 </div>
             </div>
         </div>
 
+        <div id="page-bans" class="content hidden">
+            <div class="panel-full" style="max-width:900px; margin:0 auto; width:100%;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                    <h2 style="color:var(--danger); margin:0;">BANNLISTE</h2>
+                    <button class="mini-btn" onclick="fetchBans()" style="background:transparent; border:1px solid var(--neon); color:var(--neon);"><i class="fas fa-sync"></i> Refresh</button>
+                </div>
+                
+                <div id="banListContainer" style="overflow-y:auto; flex:1;">
+                    </div>
+            </div>
+        </div>
+
         <div id="page-todos" class="content hidden">
-            <div class="panel-detail" style="max-width:800px; margin:0 auto;">
+            <div class="panel-full" style="max-width:800px; margin:0 auto; width:100%;">
                 <h2 style="color:var(--neon); margin-top:0;">AUFGABEN & NOTIZEN</h2>
                 <div style="display:flex; gap:10px; margin-bottom:20px;">
                     <input id="todoInput" class="inp" style="margin:0" placeholder="Neue Aufgabe...">
@@ -281,7 +284,7 @@
             div.className = `toast ${type}`;
             div.innerHTML = `<span>${msg}</span>`;
             container.appendChild(div);
-            setTimeout(() => div.remove(), 4000); // Verschwindet nach 4s
+            setTimeout(() => div.remove(), 4000);
         };
 
         // AUTH
@@ -314,6 +317,8 @@
             document.getElementById('page-'+tab).classList.remove('hidden');
             document.querySelectorAll('.nav-icon').forEach(el => el.classList.remove('active'));
             event.currentTarget.classList.add('active');
+
+            if(tab === 'bans') fetchBans(); // Liste laden wenn Tab geöffnet wird
         };
 
         // PLAYERS
@@ -335,16 +340,11 @@
             const list = document.getElementById('playerList');
             const term = document.getElementById('search').value.toLowerCase();
             list.innerHTML = "";
-
             const filtered = allPlayers.filter(p => p.name.toLowerCase().includes(term));
-            
             filtered.forEach(p => {
                 const div = document.createElement('div');
                 div.className = `player-item ${selectedId == p.id ? 'selected' : ''}`;
-                div.innerHTML = `
-                    <span style="font-weight:bold">${p.name}</span>
-                    <span class="p-id-badge">${p.id}</span>
-                `;
+                div.innerHTML = `<span style="font-weight:bold">${p.name}</span><span style="font-family:monospace; opacity:0.6">ID: ${p.id}</span>`;
                 div.onclick = () => selectPlayer(p);
                 list.appendChild(div);
             });
@@ -355,7 +355,6 @@
             renderList();
             document.getElementById('emptyState').classList.add('hidden');
             document.getElementById('playerDetailContent').classList.remove('hidden');
-            
             document.getElementById('pName').innerText = p.name;
             document.getElementById('pID').innerText = "ID: " + p.id;
             updateDetails(p);
@@ -365,11 +364,59 @@
             document.getElementById('hpBar').style.width = p.health + "%";
             document.getElementById('armorBar').style.width = p.armor + "%";
         }
-
         function deselect() {
             selectedId = null;
             document.getElementById('emptyState').classList.remove('hidden');
             document.getElementById('playerDetailContent').classList.add('hidden');
+        }
+
+        // BANN LISTE (NEU)
+        window.fetchBans = async () => {
+            try {
+                const res = await fetch(SERVER_URL + "/bans");
+                const bans = await res.json();
+                const list = document.getElementById('banListContainer');
+                list.innerHTML = "";
+                
+                if(bans.length === 0) {
+                    list.innerHTML = "<div style='text-align:center; color:#888; margin-top:50px;'>Keine aktiven Banns</div>";
+                    return;
+                }
+
+                bans.forEach(b => {
+                    // Zeit umrechnen
+                    let expireText = "Permanent";
+                    if(b.expire != 0) {
+                        const date = new Date(b.expire * 1000);
+                        expireText = "Bis: " + date.toLocaleDateString() + " " + date.toLocaleTimeString();
+                    }
+
+                    const div = document.createElement('div');
+                    div.className = "ban-item";
+                    div.innerHTML = `
+                        <div class="ban-info">
+                            <h4>${b.name} <small>(${b.license})</small></h4>
+                            <small>Grund: ${b.reason} | ${expireText}</small>
+                        </div>
+                        <button class="mini-btn btn-green" onclick="unbanPlayer(${b.id})">FREIGEBEN</button>
+                    `;
+                    list.appendChild(div);
+                });
+            } catch(e) { console.log(e); }
+        };
+
+        window.unbanPlayer = async (dbId) => {
+            if(!confirm("Wirklich entbannen?")) return;
+            const payload = { secret: API_SECRET, action: 'unban', targetId: dbId };
+            try {
+                const res = await fetch(SERVER_URL + "/command", {
+                    method: 'POST', headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                notify(data.message);
+                fetchBans(); // Liste neu laden
+            } catch(e) { notify("Fehler beim Entbannen", "error"); }
         }
 
         // ACTIONS
@@ -400,14 +447,13 @@
                 });
                 const data = await res.json();
                 
-                // Custom Notify
                 if(data.status === 'success') notify(data.message, 'success');
                 else notify(data.message, 'error');
 
             } catch(e) { notify("Verbindungsfehler", "error"); }
         };
 
-        // TODOS (Fixed)
+        // TODOS
         window.addTodo = async () => {
             const txt = document.getElementById('todoInput').value;
             if(txt) {
