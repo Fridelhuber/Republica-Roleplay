@@ -32,6 +32,7 @@
 
     <div id="adminPanel" class="container hidden" style="width: 500px;">
         <h2>⚡ Server Control</h2>
+        <p style="text-align:center; font-size: 0.8em; color: gray;">Verbunden mit: 185.117.3.227:40120</p>
         
         <div class="card">
             <h3>Spieler Management</h3>
@@ -59,50 +60,57 @@
     </div>
 
     <script type="module">
+        // Importiere Firebase Module direkt über URL (da wir kein Node.js hier haben)
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
-        // 1. FIREBASE CONFIG (HIER DEINE DATEN REIN!)
+        // 1. DEINE FIREBASE CONFIG (Eingefügt)
         const firebaseConfig = {
-            apiKey: "DEIN_API_KEY",
-            authDomain: "DEIN_PROJEKT.firebaseapp.com",
-            projectId: "DEIN_PROJEKT_ID",
-            storageBucket: "...",
-            messagingSenderId: "...",
-            appId: "..."
+            apiKey: "AIzaSyDiqf5q8xmyuBO_wTNzW_gV3t-FdZ6kYzc",
+            authDomain: "battleroyalegame-a15b2.firebaseapp.com",
+            databaseURL: "https://battleroyalegame-a15b2-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "battleroyalegame-a15b2",
+            storageBucket: "battleroyalegame-a15b2.firebasestorage.app",
+            messagingSenderId: "294232206552",
+            appId: "1:294232206552:web:d7c887e38e03e08361fbad",
+            measurementId: "G-JBJKLZ0K5X"
         };
 
-        // 2. FIVEM CONFIG
-        // Wenn du auf GitHub hostest, muss hier deine ÖFFENTLICHE IP rein!
-        // Beispiel: "http://185.23.12.55:30120/my_web_api/command"
-        const SERVER_URL = "http://127.0.0.1:30120/my_web_api/command"; 
+        // 2. FIVEM CONFIG (Deine IP + Port 40120)
+        // WICHTIG: Das Script auf dem Server muss im Ordner "my_web_api" sein!
+        const SERVER_URL = "http://185.117.3.227:40120/my_web_api/command"; 
+        
+        // Dieses Passwort muss identisch sein mit 'local API_SECRET' in deiner server.lua!
         const API_SECRET = "mein_geheimes_passwort_123"; 
 
+        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // --- AUTH ---
+        // --- AUTH (Login System) ---
         window.login = () => {
             const e = document.getElementById('email').value;
             const p = document.getElementById('password').value;
-            signInWithEmailAndPassword(auth, e, p).catch(err => document.getElementById('statusMsg').innerText = "Fehler: " + err.message);
+            signInWithEmailAndPassword(auth, e, p)
+                .catch(err => document.getElementById('statusMsg').innerText = "Fehler: " + err.message);
         };
+
         window.logout = () => signOut(auth);
 
         onAuthStateChanged(auth, user => {
             if(user) {
                 document.getElementById('loginPanel').classList.add('hidden');
                 document.getElementById('adminPanel').classList.remove('hidden');
-                loadTodos();
+                loadTodos(); // Lade ToDos erst nach Login
             } else {
                 document.getElementById('loginPanel').classList.remove('hidden');
                 document.getElementById('adminPanel').classList.add('hidden');
             }
         });
 
-        // --- FIVEM ACTIONS ---
+        // --- FIVEM ACTIONS (Server Kommunikation) ---
         window.sendAction = async (actionType) => {
             const id = document.getElementById('targetId').value;
             const item = document.getElementById('itemName').value;
@@ -111,6 +119,8 @@
             if(!id) return alert("Bitte eine ID eingeben!");
 
             try {
+                console.log("Sende Anfrage an:", SERVER_URL);
+                
                 const res = await fetch(SERVER_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -122,23 +132,30 @@
                         amount: amount
                     })
                 });
+
+                if(!res.ok) throw new Error("Server antwortet nicht (Code: " + res.status + ")");
+                
                 const data = await res.json();
-                alert(data.message || "Befehl gesendet");
+                alert(data.message || "Aktion ausgeführt!");
+
             } catch (err) {
                 console.error(err);
-                alert("Fehler: Konnte Server nicht erreichen. (Mixed Content oder Server offline?)");
+                alert("Fehler: Konnte Server nicht erreichen.\n\nPrüfe:\n1. Läuft Resource 'my_web_api'?\n2. Ist Port 40120 offen?\n3. Mixed Content Block (Schloss-Symbol im Browser).");
             }
         };
 
-        // --- TODO LIST ---
+        // --- TODO LIST (Firebase Firestore) ---
         window.addTodo = async () => {
             const txt = document.getElementById('todoInput').value;
             if(txt) {
+                // Speichert in Collection 'todos'
                 await addDoc(collection(db, "todos"), { task: txt, created: Date.now() });
                 document.getElementById('todoInput').value = '';
             }
         }
+
         function loadTodos() {
+            // Live-Update der Liste
             const q = query(collection(db, "todos"), orderBy("created", "desc"));
             onSnapshot(q, snaps => {
                 const list = document.getElementById('todoList');
@@ -150,6 +167,7 @@
                 });
             });
         }
+
         window.delTodo = async (id) => deleteDoc(doc(db, "todos", id));
     </script>
 </body>
