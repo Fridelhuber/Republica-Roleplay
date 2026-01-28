@@ -1,1 +1,156 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>FiveM Admin Interface</title>
+    <style>
+        body { background-color: #121212; color: #e0e0e0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .container { background-color: #1e1e1e; padding: 30px; border-radius: 12px; width: 400px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        h2, h3 { color: #ffffff; text-align: center; margin-bottom: 20px; }
+        input { width: 100%; padding: 12px; margin: 8px 0; background: #2c2c2c; border: 1px solid #444; color: white; border-radius: 6px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; margin-top: 10px; cursor: pointer; border: none; border-radius: 6px; font-weight: bold; transition: 0.2s; }
+        .btn-primary { background-color: #6200ea; color: white; }
+        .btn-primary:hover { background-color: #3700b3; }
+        .btn-danger { background-color: #cf6679; color: black; }
+        .btn-success { background-color: #03dac6; color: black; }
+        .hidden { display: none; }
+        .card { background: #252525; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #333; }
+        ul { list-style: none; padding: 0; }
+        li { background: #333; margin: 5px 0; padding: 10px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; }
+        .del-btn { background: #cf6679; border: none; color: black; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; }
+    </style>
+</head>
+<body>
 
+    <div id="loginPanel" class="container">
+        <h2>🔒 Admin Login</h2>
+        <input type="email" id="email" placeholder="Email Adresse">
+        <input type="password" id="password" placeholder="Passwort">
+        <button class="btn-primary" onclick="login()">Einloggen</button>
+        <p id="statusMsg" style="color: red; text-align: center; margin-top: 10px;"></p>
+    </div>
+
+    <div id="adminPanel" class="container hidden" style="width: 500px;">
+        <h2>⚡ Server Control</h2>
+        
+        <div class="card">
+            <h3>Spieler Management</h3>
+            <input type="number" id="targetId" placeholder="Spieler ID (Server ID)">
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-success" onclick="sendAction('revive')">🚑 Revive</button>
+                <button class="btn-danger" onclick="sendAction('kick')">🦶 Kick</button>
+            </div>
+            <hr style="border-color: #444; margin: 15px 0;">
+            <input type="text" id="itemName" placeholder="Item Name (z.B. bread)">
+            <input type="number" id="itemAmount" placeholder="Menge" value="1">
+            <button class="btn-primary" onclick="sendAction('giveitem')">🎒 Item Geben</button>
+        </div>
+
+        <div class="card">
+            <h3>📝 To-Do Liste</h3>
+            <div style="display: flex; gap: 5px;">
+                <input type="text" id="todoInput" placeholder="Neue Aufgabe...">
+                <button class="btn-success" style="width: 80px;" onclick="addTodo()">+</button>
+            </div>
+            <ul id="todoList"></ul>
+        </div>
+
+        <button class="btn-danger" onclick="logout()" style="margin-top: 20px;">Abmelden</button>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+
+        // 1. FIREBASE CONFIG (HIER DEINE DATEN REIN!)
+        const firebaseConfig = {
+            apiKey: "DEIN_API_KEY",
+            authDomain: "DEIN_PROJEKT.firebaseapp.com",
+            projectId: "DEIN_PROJEKT_ID",
+            storageBucket: "...",
+            messagingSenderId: "...",
+            appId: "..."
+        };
+
+        // 2. FIVEM CONFIG
+        // Wenn du auf GitHub hostest, muss hier deine ÖFFENTLICHE IP rein!
+        // Beispiel: "http://185.23.12.55:30120/my_web_api/command"
+        const SERVER_URL = "http://127.0.0.1:30120/my_web_api/command"; 
+        const API_SECRET = "mein_geheimes_passwort_123"; 
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // --- AUTH ---
+        window.login = () => {
+            const e = document.getElementById('email').value;
+            const p = document.getElementById('password').value;
+            signInWithEmailAndPassword(auth, e, p).catch(err => document.getElementById('statusMsg').innerText = "Fehler: " + err.message);
+        };
+        window.logout = () => signOut(auth);
+
+        onAuthStateChanged(auth, user => {
+            if(user) {
+                document.getElementById('loginPanel').classList.add('hidden');
+                document.getElementById('adminPanel').classList.remove('hidden');
+                loadTodos();
+            } else {
+                document.getElementById('loginPanel').classList.remove('hidden');
+                document.getElementById('adminPanel').classList.add('hidden');
+            }
+        });
+
+        // --- FIVEM ACTIONS ---
+        window.sendAction = async (actionType) => {
+            const id = document.getElementById('targetId').value;
+            const item = document.getElementById('itemName').value;
+            const amount = document.getElementById('itemAmount').value;
+
+            if(!id) return alert("Bitte eine ID eingeben!");
+
+            try {
+                const res = await fetch(SERVER_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        secret: API_SECRET,
+                        action: actionType,
+                        targetId: id,
+                        item: item,
+                        amount: amount
+                    })
+                });
+                const data = await res.json();
+                alert(data.message || "Befehl gesendet");
+            } catch (err) {
+                console.error(err);
+                alert("Fehler: Konnte Server nicht erreichen. (Mixed Content oder Server offline?)");
+            }
+        };
+
+        // --- TODO LIST ---
+        window.addTodo = async () => {
+            const txt = document.getElementById('todoInput').value;
+            if(txt) {
+                await addDoc(collection(db, "todos"), { task: txt, created: Date.now() });
+                document.getElementById('todoInput').value = '';
+            }
+        }
+        function loadTodos() {
+            const q = query(collection(db, "todos"), orderBy("created", "desc"));
+            onSnapshot(q, snaps => {
+                const list = document.getElementById('todoList');
+                list.innerHTML = "";
+                snaps.forEach(docSnap => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<span>${docSnap.data().task}</span> <button class="del-btn" onclick="delTodo('${docSnap.id}')">X</button>`;
+                    list.appendChild(li);
+                });
+            });
+        }
+        window.delTodo = async (id) => deleteDoc(doc(db, "todos", id));
+    </script>
+</body>
+</html>
