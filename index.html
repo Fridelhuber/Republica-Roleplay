@@ -1,362 +1,9 @@
-<!DOCTYPE html>
-<html lang="de">
-<head>
-    <meta charset="UTF-8">
-    <title>NexGen Admin Panel</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        :root {
-            --bg-color: #0f172a;
-            --sidebar-bg: #1e293b;
-            --card-bg: rgba(30, 41, 59, 0.7);
-            --accent: #3b82f6; /* Dein Blau */
-            --accent-hover: #2563eb;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --danger: #ef4444;
-            --success: #10b981;
-            --warning: #f59e0b;
-        }
-
-        body {
-            margin: 0;
-            font-family: 'Segoe UI', Inter, sans-serif;
-            background-color: var(--bg-color);
-            background-image: radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
-                              radial-gradient(at 100% 100%, rgba(15, 23, 42, 1) 0px, transparent 50%);
-            color: var(--text-main);
-            height: 100vh;
-            display: flex;
-            overflow: hidden;
-        }
-
-        /* --- LOGIN SCREEN --- */
-        #login-screen {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--bg-color);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-        .login-box {
-            background: var(--sidebar-bg);
-            padding: 40px;
-            border-radius: 16px;
-            width: 350px;
-            text-align: center;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-        .login-input {
-            width: 100%;
-            padding: 12px;
-            margin: 10px 0;
-            background: rgba(0,0,0,0.2);
-            border: 1px solid #334155;
-            border-radius: 8px;
-            color: white;
-            box-sizing: border-box;
-        }
-        .login-btn {
-            width: 100%;
-            padding: 12px;
-            background: var(--accent);
-            border: none;
-            color: white;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            margin-top: 10px;
-            transition: 0.3s;
-        }
-        .login-btn:hover { background: var(--accent-hover); }
-
-        /* --- SIDEBAR --- */
-        .sidebar {
-            width: 260px;
-            background: var(--sidebar-bg);
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            border-right: 1px solid rgba(255,255,255,0.05);
-        }
-        .brand {
-            font-size: 24px;
-            font-weight: bold;
-            color: var(--accent);
-            margin-bottom: 40px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .nav-btn {
-            background: transparent;
-            border: none;
-            color: var(--text-muted);
-            padding: 15px;
-            text-align: left;
-            cursor: pointer;
-            border-radius: 10px;
-            font-size: 16px;
-            transition: 0.2s;
-            margin-bottom: 5px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .nav-btn:hover, .nav-btn.active {
-            background: var(--accent);
-            color: white;
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-        }
-        .logout-area { margin-top: auto; }
-
-        /* --- MAIN CONTENT --- */
-        .main-content {
-            flex: 1;
-            padding: 30px;
-            overflow-y: auto;
-            position: relative;
-        }
-
-        .page { display: none; animation: fadeIn 0.3s ease; }
-        .page.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        h2 { margin-top: 0; font-size: 28px; border-bottom: 2px solid rgba(255,255,255,0.05); padding-bottom: 15px; }
-
-        /* --- GRID LAYOUT --- */
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: 300px 1fr;
-            gap: 25px;
-            height: calc(100vh - 100px);
-        }
-
-        /* --- CARDS --- */
-        .card {
-            background: var(--card-bg);
-            backdrop-filter: blur(10px);
-            border-radius: 12px;
-            padding: 20px;
-            border: 1px solid rgba(255,255,255,0.05);
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* --- PLAYER LIST --- */
-        .search-bar {
-            background: rgba(0,0,0,0.3);
-            border: 1px solid #334155;
-            padding: 10px;
-            border-radius: 8px;
-            color: white;
-            width: 100%;
-            margin-bottom: 15px;
-            box-sizing: border-box;
-        }
-        .player-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            overflow-y: auto;
-            flex: 1;
-        }
-        .player-item {
-            padding: 12px;
-            background: rgba(255,255,255,0.03);
-            margin-bottom: 8px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: 0.2s;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .player-item:hover, .player-item.selected {
-            background: rgba(59, 130, 246, 0.2);
-            border-left: 3px solid var(--accent);
-        }
-        .status-dot { height: 8px; width: 8px; background: var(--success); border-radius: 50%; display: inline-block; margin-right: 8px; }
-
-        /* --- ACTION BUTTONS --- */
-        .action-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-        .btn {
-            padding: 12px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            color: white;
-            transition: transform 0.1s;
-        }
-        .btn:active { transform: scale(0.98); }
-        .btn-revive { background: var(--success); }
-        .btn-kick { background: var(--warning); color: black; }
-        .btn-ban { background: var(--danger); width: 100%; margin-top: 15px; }
-        .btn-blue { background: var(--accent); }
-
-        .input-group {
-            background: rgba(0,0,0,0.2);
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-        }
-        .input-group label { display: block; margin-bottom: 5px; font-size: 0.9em; color: var(--text-muted); }
-        .input-row { display: flex; gap: 10px; }
-        .input-mini { background: #0f172a; border: 1px solid #334155; color: white; padding: 8px; border-radius: 6px; flex: 1; }
-
-        /* --- TODO STYLE --- */
-        .todo-container { max-width: 800px; margin: 0 auto; }
-        .todo-header { display: flex; gap: 10px; margin-bottom: 20px; }
-        .priority-select { background: #1e293b; color: white; border: 1px solid #334155; border-radius: 8px; padding: 0 10px; }
-        .todo-item {
-            background: var(--card-bg);
-            padding: 15px;
-            margin-bottom: 10px;
-            border-radius: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-left: 4px solid var(--accent);
-        }
-        .todo-item.high { border-left-color: var(--danger); }
-        .todo-item.medium { border-left-color: var(--warning); }
-        .todo-item.low { border-left-color: var(--success); }
-        
-        .hidden { display: none !important; }
-    </style>
-</head>
-<body>
-
-    <div id="login-screen">
-        <div class="login-box">
-            <h2 style="border:none; color: var(--accent);">Admin Login</h2>
-            <input type="email" id="email" class="login-input" placeholder="Email">
-            <input type="password" id="password" class="login-input" placeholder="Passwort">
-            <button class="login-btn" onclick="login()">Enter Dashboard</button>
-            <p id="login-msg" style="color: var(--danger); font-size: 0.9em; margin-top: 10px;"></p>
-        </div>
-    </div>
-
-    <div id="dashboard" class="hidden" style="width: 100%; display: flex;">
-        
-        <div class="sidebar">
-            <div class="brand">
-                <i class="fas fa-shield-alt"></i> ADMIN PANEL
-            </div>
-            <button class="nav-btn active" onclick="switchTab('players')">
-                <i class="fas fa-users"></i> Spieler
-            </button>
-            <button class="nav-btn" onclick="switchTab('todos')">
-                <i class="fas fa-tasks"></i> To-Do Liste
-            </button>
-            
-            <div class="logout-area">
-                <button class="nav-btn" onclick="logout()" style="color: var(--danger);">
-                    <i class="fas fa-sign-out-alt"></i> Logout
-                </button>
-            </div>
-        </div>
-
-        <div class="main-content">
-            
-            <div id="page-players" class="page active">
-                <h2><i class="fas fa-gamepad"></i> Server Management</h2>
-                
-                <div class="dashboard-grid">
-                    <div class="card">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                            <h3 style="margin:0;">Online</h3>
-                            <button onclick="fetchPlayers()" style="background:none; border:none; color:var(--accent); cursor:pointer;"><i class="fas fa-sync"></i></button>
-                        </div>
-                        <input type="text" id="playerSearch" class="search-bar" placeholder="Spieler suchen..." onkeyup="filterPlayers()">
-                        <ul id="playerList" class="player-list">
-                            <li style="padding:20px; text-align:center; color:gray;">Lade Spieler...</li>
-                        </ul>
-                    </div>
-
-                    <div class="card">
-                        <h3 id="selectedPlayerName" style="color: var(--accent); margin-top:0;">Kein Spieler ausgewählt</h3>
-                        <input type="hidden" id="selectedPlayerId">
-                        
-                        <div id="actionPanel" style="opacity: 0.5; pointer-events: none;">
-                            
-                            <div class="action-grid">
-                                <button class="btn btn-revive" onclick="sendAction('revive')"><i class="fas fa-heartbeat"></i> Revive</button>
-                                <button class="btn btn-kick" onclick="sendAction('kick')"><i class="fas fa-boot"></i> Kick</button>
-                            </div>
-
-                            <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 0;">
-
-                            <div class="input-group">
-                                <label><i class="fas fa-box"></i> Item geben</label>
-                                <div class="input-row">
-                                    <input type="text" id="itemName" class="input-mini" placeholder="Item (z.B. bread)">
-                                    <input type="number" id="itemAmount" class="input-mini" placeholder="Menge" value="1" style="max-width: 60px;">
-                                    <button class="btn btn-blue" onclick="sendAction('giveitem')">Geben</button>
-                                </div>
-                            </div>
-
-                            <div class="input-group">
-                                <label><i class="fas fa-money-bill-wave"></i> Geld geben</label>
-                                <div class="input-row">
-                                    <input type="number" id="moneyAmount" class="input-mini" placeholder="Betrag">
-                                    <button class="btn btn-blue" onclick="sendAction('givemoney')">Senden</button>
-                                </div>
-                            </div>
-
-                            <div class="input-group">
-                                <label><i class="fas fa-gun"></i> Waffe geben</label>
-                                <div class="input-row">
-                                    <input type="text" id="weaponName" class="input-mini" placeholder="ID (z.B. weapon_pistol)">
-                                    <input type="number" id="weaponAmmo" class="input-mini" placeholder="Schuss" value="100" style="max-width: 60px;">
-                                    <button class="btn btn-blue" onclick="sendAction('giveweapon')">Geben</button>
-                                </div>
-                            </div>
-
-                            <button class="btn btn-ban" onclick="sendAction('ban')"><i class="fas fa-ban"></i> BANNEN</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="page-todos" class="page">
-                <h2><i class="fas fa-clipboard-list"></i> To-Do Liste</h2>
-                
-                <div class="todo-container">
-                    <div class="todo-header">
-                        <select id="todoPriority" class="priority-select">
-                            <option value="low">Niedrig</option>
-                            <option value="medium" selected>Mittel</option>
-                            <option value="high">Hoch 🚨</option>
-                        </select>
-                        <input type="text" id="todoInput" class="search-bar" placeholder="Neue Aufgabe erstellen..." style="margin:0;">
-                        <button class="btn btn-blue" style="width: 100px;" onclick="addTodo()">+ Add</button>
-                    </div>
-
-                    <div id="todoList">
-                        </div>
-                </div>
-            </div>
-
-        </div>
-    </div>
-
-    <script type="module">
+<script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
-        // ==========================================
-        // KONFIGURATION (HIER ANPASSEN!)
-        // ==========================================
+        // --- DEINE CONFIG ---
         const firebaseConfig = {
             apiKey: "AIzaSyDiqf5q8xmyuBO_wTNzW_gV3t-FdZ6kYzc",
             authDomain: "battleroyalegame-a15b2.firebaseapp.com",
@@ -368,9 +15,10 @@
             measurementId: "G-JBJKLZ0K5X"
         };
 
-        const SERVER_URL = "http://185.117.3.227:40120/my_web_api"; 
-        const API_SECRET = "mein_geheimes_passwort_123";
-        // ==========================================
+        // HIER WAR DER FEHLER: Der Name muss admin_pannel_flo sein!
+        // Da du lokal testest, nutzen wir 127.0.0.1
+        const SERVER_BASE_URL = "http://127.0.0.1:30120/admin_pannel_flo"; 
+        const API_SECRET = "mein_geheimes_passwort_123"; // Muss mit server.lua übereinstimmen!
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -381,7 +29,9 @@
             const e = document.getElementById('email').value;
             const p = document.getElementById('password').value;
             signInWithEmailAndPassword(auth, e, p).catch(err => {
-                document.getElementById('login-msg').innerText = "Fehler: " + err.message;
+                // Zeigt genau an, was falsch ist
+                console.error(err);
+                document.getElementById('login-msg').innerText = "Fehler: " + err.code; 
             });
         };
 
@@ -393,67 +43,53 @@
             
             if(user) {
                 loginScreen.classList.add('hidden');
-                dashboard.style.display = 'flex'; // Fix für flex layout
+                dashboard.style.display = 'flex';
                 dashboard.classList.remove('hidden');
-                fetchPlayers();
+                fetchPlayers(); // Sofort Spieler laden
                 loadTodos();
+                // Startet automatischen Refresh alle 5 Sekunden
+                setInterval(fetchPlayers, 5000); 
             } else {
                 loginScreen.classList.remove('hidden');
                 dashboard.classList.add('hidden');
             }
         });
 
-        // --- NAVIGATION TABS ---
+        // --- NAVIGATION ---
         window.switchTab = (tabName) => {
-            // Buttons updaten
             document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-            event.currentTarget.classList.add('active'); // Der geklickte Button
-
-            // Seiten umschalten
+            event.currentTarget.classList.add('active');
             document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
             document.getElementById('page-' + tabName).classList.add('active');
         }
 
         // --- PLAYER LOGIC ---
-        let allPlayers = []; // Speichert alle Spieler für die Suche
+        let allPlayers = [];
 
         window.fetchPlayers = async () => {
-            // Mock Data falls Server offline (zum Testen) - kann man später entfernen
-            /*
-            allPlayers = [
-                {id: 1, name: "Flo.Saftig"},
-                {id: 2, name: "GamerXYZ"},
-                {id: 42, name: "AdminBoss"}
-            ];
-            renderPlayers(allPlayers);
-            return; 
-            */
-            
-            // ECHTE ABFRAGE
             try {
-                // Wir nutzen hier /api/players endpoint wenn vorhanden, oder fallback
-                // Wenn du das Script von vorhin nutzt, muss server.lua einen /players endpoint haben
-                // Ich nehme an, wir schicken command "getPlayers" oder ähnlich.
-                // DA server.lua oben das nicht hatte, hier eine Anpassung:
-                // Wir rufen den endpoint auf. Wenn server.lua das nicht kann, 
-                // musst du in server.lua oben: if path == '/players' ... hinzufügen.
+                // Wir rufen jetzt den richtigen Ordner auf
+                console.log("Versuche Spieler zu laden von:", SERVER_BASE_URL + "/players");
                 
-                // Wir versuchen es über den command endpoint oder passen server.lua an.
-                // Hier Annahme: Server.lua liefert JSON Liste bei GET /players
-                const res = await fetch(SERVER_URL.replace('/command', '/players')); 
-                if(res.ok) {
-                    allPlayers = await res.json();
-                    renderPlayers(allPlayers);
-                }
+                const res = await fetch(SERVER_BASE_URL + "/players");
+                
+                if(!res.ok) throw new Error("HTTP Fehler: " + res.status);
+                
+                allPlayers = await res.json();
+                renderPlayers(allPlayers);
             } catch(e) {
-                console.log("Konnte Spieler nicht laden (vielleicht offline?)");
-                document.getElementById('playerList').innerHTML = '<li style="padding:20px; text-align:center; color:#ef4444;">Server offline oder nicht erreichbar</li>';
+                console.error("Fetch Fehler:", e);
+                document.getElementById('playerList').innerHTML = `<li style="padding:20px; text-align:center; color:#ef4444;">Fehler: ${e.message}<br><small>Prüfe F12 Konsole</small></li>`;
             }
         };
 
         window.renderPlayers = (players) => {
             const list = document.getElementById('playerList');
             list.innerHTML = "";
+            if(players.length === 0) {
+                 list.innerHTML = '<li style="padding:20px; text-align:center; color:gray;">Keine Spieler online</li>';
+                 return;
+            }
             players.forEach(p => {
                 const li = document.createElement('li');
                 li.className = 'player-item';
@@ -470,16 +106,11 @@
         };
 
         window.selectPlayer = (id, name, element) => {
-            // UI Update
             document.querySelectorAll('.player-item').forEach(el => el.classList.remove('selected'));
             element.classList.add('selected');
-
-            // Daten setzen
             document.getElementById('selectedPlayerName').innerText = `Verwalte: ${name} (ID: ${id})`;
             document.getElementById('selectedPlayerName').style.color = "white";
             document.getElementById('selectedPlayerId').value = id;
-            
-            // Panel aktivieren
             document.getElementById('actionPanel').style.opacity = "1";
             document.getElementById('actionPanel').style.pointerEvents = "all";
         };
@@ -494,21 +125,19 @@
                 targetId: id
             };
 
-            // Zusätzliche Daten je nach Aktion
             if(actionType === 'giveitem') {
                 payload.item = document.getElementById('itemName').value;
                 payload.amount = document.getElementById('itemAmount').value;
             } else if (actionType === 'givemoney') {
                 payload.amount = document.getElementById('moneyAmount').value;
-                payload.item = 'money'; // Server Logic muss das erkennen
+                payload.item = 'money'; 
             } else if (actionType === 'giveweapon') {
                 payload.item = document.getElementById('weaponName').value;
                 payload.amount = document.getElementById('weaponAmmo').value;
             }
 
             try {
-                // Endpoint auf command setzen
-                const res = await fetch(SERVER_URL + "/command", {
+                const res = await fetch(SERVER_BASE_URL + "/command", {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify(payload)
@@ -516,7 +145,7 @@
                 const data = await res.json();
                 alert(data.message || "Aktion ausgeführt!");
             } catch(e) {
-                alert("Fehler beim Senden!");
+                alert("Fehler beim Senden: " + e.message);
             }
         };
 
@@ -525,11 +154,7 @@
             const txt = document.getElementById('todoInput').value;
             const prio = document.getElementById('todoPriority').value;
             if(txt) {
-                await addDoc(collection(db, "todos"), { 
-                    task: txt, 
-                    priority: prio,
-                    created: Date.now() 
-                });
+                await addDoc(collection(db, "todos"), { task: txt, priority: prio, created: Date.now() });
                 document.getElementById('todoInput').value = '';
             }
         };
@@ -542,18 +167,11 @@
                 snaps.forEach(docSnap => {
                     const data = docSnap.data();
                     const div = document.createElement('div');
-                    // Klasse basierend auf Priority
                     div.className = `todo-item ${data.priority || 'medium'}`;
-                    div.innerHTML = `
-                        <span>${data.task}</span>
-                        <button onclick="delTodo('${docSnap.id}')" style="background:none; border:none; color:#94a3b8; cursor:pointer;"><i class="fas fa-trash"></i></button>
-                    `;
+                    div.innerHTML = `<span>${data.task}</span> <button onclick="delTodo('${docSnap.id}')" style="background:none; border:none; color:#94a3b8; cursor:pointer;"><i class="fas fa-trash"></i></button>`;
                     list.appendChild(div);
                 });
             });
         };
         window.delTodo = async (id) => deleteDoc(doc(db, "todos", id));
-
     </script>
-</body>
-</html>
